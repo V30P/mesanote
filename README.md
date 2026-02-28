@@ -45,7 +45,7 @@ With these definitions for specific structures:
 
 ```
 section = ">" TITLE, element;
-list = "+" [TITLE] , element;
+list = "+" [TITLE] , grouping;
 ```
 
 Since this grammar is mostly LL(1) (although technically LL(2) due to the extra token of look ahead needed for optional list titles), it is easily parsed by a recursive descent parser.
