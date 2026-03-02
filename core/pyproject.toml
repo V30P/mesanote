@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "nnn-lang"
+name = "mesanote"
 version = "0.1.0"
 description = ""
 authors = ["V30P <nhenning06@gmail.com>"]
@@ -8,6 +8,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 
+[tool.poetry.scripts]
+mesa = "mesanote.__main__:main"
 
 [build-system]
 requires = ["poetry-core"]

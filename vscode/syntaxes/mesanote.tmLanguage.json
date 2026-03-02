@@ -1,0 +1,50 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "MesaNote",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#symbols"
+		},
+		{
+			"include": "#markdown"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line",
+					"match": "//.*$"
+				}
+			]
+		},
+		"symbols": {
+			"patterns": [
+				{
+					"name": "keyword.operator",
+					"match": "\\\\[|>+]"
+				},
+				{
+					"name": "keyword.control",
+					"match": "[|>+]"
+				}
+			]
+		},
+		"markdown": {
+			"patterns": [
+				{
+					"name": "markup.bold",
+					"match": "\\*\\*.*\\*\\*"
+				},
+				{
+					"name": "markup.italic",
+					"match": "\\*.*\\*"
+				}
+			]
+		}
+	},
+	"scopeName": "text.mesanote"
+}

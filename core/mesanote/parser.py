@@ -1,5 +1,5 @@
 from typing import cast
-from nnn_lang.tokenizer import (
+from mesanote.tokenizer import (
     Token,
     TextToken,
     GroupStartToken,
@@ -8,7 +8,7 @@ from nnn_lang.tokenizer import (
     SectionStartToken,
     ListStartToken,
 )
-from nnn_lang.nodes import Document, Element, Text, Grouping, Structure, Section, List
+from mesanote.nodes import Document, Element, Text, Grouping, Structure, Section, List
 
 
 class Parser:

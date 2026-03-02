@@ -1,5 +1,5 @@
-from nnn_lang.tokenizer import tokenize
-from nnn_lang.parser import parse
+from mesanote.tokenizer import tokenize
+from mesanote.parser import parse
 from sys import argv
 from pathlib import Path
 

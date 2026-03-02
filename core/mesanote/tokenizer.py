@@ -37,6 +37,7 @@ structures = {
     "+": ListStartToken,
 }
 
+
 def tokenize(text: str) -> list[Token]:
     tokens = []
     accumulated_text = ""
@@ -55,7 +56,10 @@ def tokenize(text: str) -> list[Token]:
                 continue
 
             for char in virtual_line:
-                if len(accumulated_text) > 0 and accumulated_text[-1] == escape_character:
+                if (
+                    len(accumulated_text) > 0
+                    and accumulated_text[-1] == escape_character
+                ):
                     if char in [delimiter, *structures]:
                         accumulated_text = accumulated_text.replace("\\", char)
                         continue

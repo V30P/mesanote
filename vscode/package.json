@@ -1,0 +1,39 @@
+{
+  "name": "mesanote",
+  "displayName": "MesaNote",
+  "description": "A frill-free markup Language built for efficient, organized note taking.",
+  "version": "0.0.1",
+  "publisher": "veop",
+  "engines": {
+    "vscode": "^1.109.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "mesanote",
+        "aliases": [
+          "mesanote"
+        ],
+        "extensions": [
+          ".mdoc"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mesanote",
+        "scopeName": "text.mesanote",
+        "path": "./syntaxes/mesanote.tmLanguage.json"
+      }
+    ]
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/V30P/mesanote"
+  }
+}
