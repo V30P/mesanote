@@ -7,9 +7,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+click = "^8.3.1"
 
 [tool.poetry.scripts]
-mesa = "mesanote.__main__:main"
+mesa = "mesanote.cli:cli"
 
 [build-system]
 requires = ["poetry-core"]

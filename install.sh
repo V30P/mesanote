@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install the core language project
-pipx install ./core
+pipx install --force ./core
 
 # Pack the vscode extension
 cd vscode

@@ -1,36 +1,18 @@
-class Token:
-    pass
+from mesanote.tokens import (
+    Token,
+    TextToken,
+    GroupStartToken,
+    GroupEndToken,
+    SectionStartToken,
+    ListStartToken,
+)
 
+comment_chars = "//"
+delimiter_char = "|"
+escape_char = "\\"
 
-class TextToken(Token):
-    def __init__(self, value: str) -> None:
-        self.value = value
-
-
-class GroupStartToken(Token):
-    pass
-
-
-class GroupEndToken(Token):
-    pass
-
-
-class StructureStartToken(Token):
-    pass
-
-
-class SectionStartToken(StructureStartToken):
-    pass
-
-
-class ListStartToken(StructureStartToken):
-    pass
-
-
-comment_characters = "//"
-delimiter = "|"
-escape_character = "\\"
-structures = {
+# Tokens that can be created from a single character
+symbols = {
     "{": GroupStartToken,
     "}": GroupEndToken,
     ">": SectionStartToken,
@@ -42,6 +24,8 @@ def tokenize(text: str) -> list[Token]:
     tokens = []
     accumulated_text = ""
 
+    # Create a text token from the characters that haven't been tokenized
+    # Will skip creating a token if it would be empty
     def tokenize_accumulation():
         nonlocal accumulated_text
         accumulated_text = accumulated_text.strip()
@@ -50,30 +34,27 @@ def tokenize(text: str) -> list[Token]:
             tokens.append(TextToken(accumulated_text))
             accumulated_text = ""
 
-    for line in text.splitlines():
-        for virtual_line in line.split(delimiter):
-            if virtual_line.lstrip().startswith(comment_characters):
-                continue
+    for chunk in text.replace('\n', delimiter_char).split(delimiter_char):
+        # Skip comments
+        if chunk.lstrip().startswith(comment_chars):
+            continue
 
-            for char in virtual_line:
-                if (
-                    len(accumulated_text) > 0
-                    and accumulated_text[-1] == escape_character
-                ):
-                    if char in [delimiter, *structures]:
-                        accumulated_text = accumulated_text.replace("\\", char)
-                        continue
-                    else:
-                        raise Exception()
-
-                if char == delimiter:
-                    tokenize_accumulation()
-                elif char in structures.keys():
-                    tokenize_accumulation()
-                    tokens.append((structures[char]()))
+        for char in chunk:
+            if len(accumulated_text) > 0 and accumulated_text[-1] == escape_char:
+                if char in [delimiter_char, *symbols]:
+                    accumulated_text = accumulated_text.replace("\\", char)
+                    continue
                 else:
-                    accumulated_text += char
+                    raise Exception()
+                
+            if char == delimiter_char:
+                tokenize_accumulation()
+            elif char in symbols.keys():
+                tokenize_accumulation()
+                tokens.append((symbols[char]()))
+            else:
+                accumulated_text += char
 
-            tokenize_accumulation()
+        tokenize_accumulation()
 
     return tokens

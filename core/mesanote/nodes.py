@@ -1,5 +1,10 @@
-class Node:
-    pass
+from abc import ABC, abstractmethod
+
+
+class Node(ABC):
+    @abstractmethod
+    def render(self) -> str:
+        pass
 
 
 class Document(Node):
