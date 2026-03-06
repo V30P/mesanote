@@ -1,81 +1,67 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import List as TypingList
 
 
+@dataclass(eq=True)
 class Node(ABC):
     @abstractmethod
     def render(self) -> str:
         pass
 
 
+@dataclass(eq=True)
 class Document(Node):
-    def __init__(self):
-        super().__init__()
-        self.contents = []
+    contents: TypingList[Node]
 
     def render(self) -> str:
-        render = ""
-        for element in self.contents:
-            render += element.render()
-
-        return render
+        return "".join(element.render() for element in self.contents)
 
 
+@dataclass(eq=True)
 class Element(Node):
     def render(self) -> str:
         return ""
 
 
+@dataclass(eq=True)
 class Text(Element):
-    def __init__(self, value: str):
-        super().__init__()
-        self.value = value
+    value: str
 
     def render(self) -> str:
         return f"<p>{self.value}</p>"
 
 
+@dataclass(eq=True)
 class Grouping(Element):
-    def __init__(self, contents: list[Element]):
-        super().__init__()
-        self.contents = contents
+    contents: TypingList[Element]
 
     def render(self) -> str:
-        render = ""
-        for element in self.contents:
-            render += element.render()
-
-        return render
+        return "".join(element.render() for element in self.contents)
 
 
+@dataclass(eq=True)
 class Structure(Element):
-    def __init__(self, depth: int) -> None:
-        super().__init__()
-        self.depth = depth
+    depth: int
 
 
+@dataclass(eq=True)
 class Section(Structure):
-    def __init__(self, depth: int, title: str, content: Element):
-        super().__init__(depth)
-        self.title = title
-        self.content = content
+    title: str
+    content: Element
 
     def render(self) -> str:
         return f"<h{self.depth}>{self.title}</h{self.depth}>{self.content.render()}"
 
 
+@dataclass(eq=True)
 class List(Structure):
-    def __init__(self, depth: int, title: str, grouping: Grouping):
-        super().__init__(depth)
-        self.title = title
-        self.grouping = grouping
+    title: str
+    grouping: Grouping
 
     def render(self) -> str:
-        render = (
-            f"<h{self.depth}>{self.title}</h{self.depth}>" if self.title != "" else ""
+        header = f"<h{self.depth}>{self.title}</h{self.depth}>" if self.title else ""
+        items = "".join(
+            f"<li>{element.render()}</li>" for element in self.grouping.contents
         )
-
-        render += "<ul>"
-        for element in self.grouping.contents:
-            render += f"<li>{element.render()}</li>"
-
-        return render + "</ul>"
+        return f"{header}<ul>{items}</ul>"

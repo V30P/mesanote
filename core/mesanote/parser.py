@@ -1,6 +1,6 @@
 from typing import cast
 
-from mesanote.tokens import (  # noqa
+from mesanote.tokens import (
     Token,
     TextToken,
     GroupStartToken,
@@ -9,7 +9,7 @@ from mesanote.tokens import (  # noqa
     SectionStartToken,
     ListStartToken,
 )
-from mesanote.nodes import (  # noqa
+from mesanote.nodes import (
     Document,
     Element,
     Text,
@@ -20,10 +20,14 @@ from mesanote.nodes import (  # noqa
 )
 
 
+class ParseError(Exception):
+    pass
+
+
 class Parser:
     def __init__(self, tokens: list[Token]):
         self._tokens = tokens
-        self._token = tokens[0]
+        self._token = tokens[0] if len(self._tokens) > 0 else None
         self._depth = 0
 
         self.document = self._parse_document()
@@ -36,11 +40,11 @@ class Parser:
 
     # Recursive descent parser implementation
     def _parse_document(self) -> Document:
-        document = Document()
+        content = []
         while self._token is not None:
-            document.contents.append(self._parse_element())
+            content.append(self._parse_element())
 
-        return document
+        return Document(content)
 
     def _parse_element(self) -> Element:
         if isinstance(self._token, TextToken):
@@ -50,7 +54,9 @@ class Parser:
         elif isinstance(self._token, StructureStartToken):
             return self._parse_structure()
 
-        raise Exception()
+        raise ParseError(
+            f"Cannot start an element with token of type: '{self._token.__class__.__name__}'."
+        )
 
     def _parse_text(self) -> Text:
         return Text(cast(TextToken, self.pop()).value)
@@ -76,11 +82,8 @@ class Parser:
             structure = self._parse_list()
 
         # Decrement depth when exiting a structure
-        if structure is not None:
-            self._depth -= 1
-            return structure
-
-        raise Exception()
+        self._depth -= 1
+        return cast(Structure, structure)
 
     def _parse_section(self) -> Section:
         self.pop()
@@ -93,11 +96,13 @@ class Parser:
     def _parse_list(self) -> List:
         self.pop()
 
-        if isinstance(self._token, TextToken):  # Handle optional list titles
-            title = self._parse_text().value
-            return List(self._depth, title, self._parse_grouping())
-        else:
-            return List(self._depth, "", self._parse_grouping())
+        # Handle optional list titles
+        title = self._parse_text().value if isinstance(self._token, TextToken) else ""
+
+        if not isinstance(self._token, GroupStartToken):
+            raise ParseError("List must be followed by a grouping.")
+
+        return List(self._depth, title, self._parse_grouping())
 
 
 def parse(tokens: list[Token]) -> Document:

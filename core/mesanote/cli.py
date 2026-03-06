@@ -6,7 +6,7 @@ import click
 from mesanote import tokenizer
 from mesanote import parser
 
-def _validate_document(_, __, value):
+def _validate_document(_, __, value: str) -> Path:
     path = Path(value)
     if path.is_file():
         return path
@@ -18,16 +18,20 @@ def _validate_document(_, __, value):
     raise click.BadParameter(f"Could not find file for path: '{path}'.")
 
 
-def _parse_document(document: Path, output: Path):
+def _parse_document(document: Path, output: Path) -> None:
     with open(document, "r") as file:
-        tokens = tokenizer.tokenize(file.read())
-        root = parser.parse(tokens)
+        try:
+            tokens = tokenizer.tokenize(file.read())
+            root = parser.parse(tokens)
+        except (tokenizer.TokenizationError, parser.ParseError) as error:
+            raise click.UsageError(message=error.args[0])
+
         html = root.render()
 
     with open(output or document.with_suffix(".html"), "w") as file:
         file.write(html)
 
-# CLI interface
+# CLI
 @click.group()
 def cli():
     """The core CLI for the MesaNote markup language."""

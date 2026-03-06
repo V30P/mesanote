@@ -1,17 +1,27 @@
-[tool.poetry]
+[project]
 name = "mesanote"
 version = "0.1.0"
 description = ""
-authors = ["V30P <nhenning06@gmail.com>"]
 readme = "README.md"
+requires-python = ">=3.12"
 
-[tool.poetry.dependencies]
-python = "^3.12"
-click = "^8.3.1"
+authors = [
+  { name = "V30P", email = "nhenning06@gmail.com" }
+]
 
-[tool.poetry.scripts]
+dependencies = [
+  "click>=8.3.1"
+]
+
+[project.scripts]
 mesa = "mesanote.cli:cli"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [{ include = "mesanote" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0.2"

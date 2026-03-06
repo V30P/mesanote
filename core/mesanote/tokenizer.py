@@ -7,17 +7,17 @@ from mesanote.tokens import (
     ListStartToken,
 )
 
-comment_chars = "//"
-delimiter_char = "|"
-escape_char = "\\"
-
-# Tokens that can be created from a single character
-symbols = {
+DELIMITER = "|"
+SYMBOLS = {
     "{": GroupStartToken,
     "}": GroupEndToken,
     ">": SectionStartToken,
     "+": ListStartToken,
 }
+
+
+class TokenizationError(Exception):
+    pass
 
 
 def tokenize(text: str) -> list[Token]:
@@ -26,7 +26,7 @@ def tokenize(text: str) -> list[Token]:
 
     # Create a text token from the characters that haven't been tokenized
     # Will skip creating a token if it would be empty
-    def tokenize_accumulation():
+    def tokenize_accumulation() -> None:
         nonlocal accumulated_text
         accumulated_text = accumulated_text.strip()
 
@@ -34,27 +34,46 @@ def tokenize(text: str) -> list[Token]:
             tokens.append(TextToken(accumulated_text))
             accumulated_text = ""
 
-    for chunk in text.replace('\n', delimiter_char).split(delimiter_char):
-        # Skip comments
-        if chunk.lstrip().startswith(comment_chars):
-            continue
-
-        for char in chunk:
-            if len(accumulated_text) > 0 and accumulated_text[-1] == escape_char:
-                if char in [delimiter_char, *symbols]:
-                    accumulated_text = accumulated_text.replace("\\", char)
-                    continue
-                else:
-                    raise Exception()
-                
-            if char == delimiter_char:
-                tokenize_accumulation()
-            elif char in symbols.keys():
-                tokenize_accumulation()
-                tokens.append((symbols[char]()))
-            else:
-                accumulated_text += char
+    # Begin a new chunk, resetting chunk-based state
+    def start_chunk() -> None:
+        nonlocal commenting, escaping
 
         tokenize_accumulation()
+        commenting = escaping = False
+
+    commenting = escaping = False
+    for char in text:
+        # Escape the character
+        if escaping:
+            if char in [DELIMITER, *SYMBOLS.keys()]:
+                accumulated_text += char
+                escaping = False
+            else:
+                raise TokenizationError(f"Cannot escape character: '{char}'")
+        # Start a chunk via newline
+        elif char == "\n":
+            start_chunk()
+        # Skip comment characters
+        elif commenting:
+            continue
+        # Start a chunk via delimiter (lower priority, so | can appear in comments)
+        elif char == DELIMITER:
+            start_chunk()
+        # Start escaping
+        elif char == "\\":
+            escaping = True
+        elif char == "/" and len(accumulated_text) > 0 and accumulated_text[-1] == "/":
+            accumulated_text = accumulated_text[:-1]
+            commenting = True
+        # Create a token from a symbol
+        elif char in SYMBOLS.keys():
+            tokenize_accumulation()
+            tokens.append((SYMBOLS[char]()))
+        # Accumulate the character as text
+        else:
+            accumulated_text += char
+
+    # Tokenize leftover text
+    tokenize_accumulation()
 
     return tokens
