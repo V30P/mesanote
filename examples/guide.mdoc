@@ -1,0 +1,70 @@
+> MesaNote Syntax Guide 
+{
+    > Text
+    {
+        Text can be rendered as italicized or bolded (or both), and may include escaped characters.
+
+        > Example
+        {
+            This is text.
+            *This is important text.*
+            **This is very important text.**
+            ***This is super important text.***
+            This text has an escaped symbol: 1 \+ 1 = 2
+        }
+    }
+
+    > Comments (\//)
+    {
+        Comments exclude all text to the right on their line from the parsing process.
+
+        > Example
+        {
+            There is a comment here, but it won't be rendered.
+
+            // I am not rendered
+        }
+    }
+
+    > Groupings (\{\})
+    {
+        Groupings allow multiple elements where a single element is expected.
+
+        > Example
+        {
+            + 
+            {
+                This is just one paragraph.
+                {
+                    Here is the first paragraph of a grouping
+                    Here is the second paragraph of a grouping.
+                }
+            }
+        }
+    }
+
+    > Sections (\>)
+    {
+        Sections render automatically scaled header text based off their depth.
+
+        > Example
+        {
+            > Section B > Section C > Section D | This text is in nested sections. 
+        }
+    }
+
+    > Lists (\+) 
+    {
+        Lists render an unordered list from a grouping of elements.
+
+        > Example
+        {
+            +
+            {
+                Element A
+                Element B
+                Element C
+            }
+        }
+    }
+}

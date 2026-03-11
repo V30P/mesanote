@@ -1,79 +1,98 @@
+from typing import List
+
+from mesanote.cursor import Cursor
 from mesanote.tokens import (
     Token,
+    StringStartToken,
+    StringEndToken,
     TextToken,
+    EmphasisToken,
     GroupStartToken,
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
 )
 
-DELIMITER = "|"
-SYMBOLS = {
-    "{": GroupStartToken,
-    "}": GroupEndToken,
-    ">": SectionStartToken,
-    "+": ListStartToken,
-}
+# region Base symbols
+COMMENT = "//"
+GROUPING = ("{", "}")
+SECTION = ">"
+LIST = "+"
+
+BASE_SYMBOLS = [*GROUPING, COMMENT, SECTION, LIST]
+# endregion
+
+# region String symbols
+EMPHASIS = "*"
+ESCAPE = "\\"
+
+STRING_SYMBOLS = [EMPHASIS, ESCAPE]
+
+STRING_TERMINATORS = ["\n", "|"]
+ESCAPABLES = [s[0] for s in [*BASE_SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]]
+# endregion
 
 
 class TokenizationError(Exception):
     pass
 
 
-def tokenize(text: str) -> list[Token]:
-    tokens = []
-    accumulated_text = ""
+def tokenize(text: str) -> List[Token]:
+    cursor = Cursor(text)
+    tokens: List[Token] = []
 
-    # Create a text token from the characters that haven't been tokenized
-    # Will skip creating a token if it would be empty
-    def tokenize_accumulation() -> None:
-        nonlocal accumulated_text
-        accumulated_text = accumulated_text.strip()
-
-        if accumulated_text != "":
-            tokens.append(TextToken(accumulated_text))
-            accumulated_text = ""
-
-    # Begin a new chunk, resetting chunk-based state
-    def start_chunk() -> None:
-        nonlocal commenting, escaping
-
-        tokenize_accumulation()
-        commenting = escaping = False
-
-    commenting = escaping = False
-    for char in text:
-        # Escape the character
-        if escaping:
-            if char in [DELIMITER, *SYMBOLS.keys()]:
-                accumulated_text += char
-                escaping = False
-            else:
-                raise TokenizationError(f"Cannot escape character: '{char}'")
-        # Start a chunk via newline
-        elif char == "\n":
-            start_chunk()
-        # Skip comment characters
-        elif commenting:
-            continue
-        # Start a chunk via delimiter (lower priority, so | can appear in comments)
-        elif char == DELIMITER:
-            start_chunk()
-        # Start escaping
-        elif char == "\\":
-            escaping = True
-        elif char == "/" and len(accumulated_text) > 0 and accumulated_text[-1] == "/":
-            accumulated_text = accumulated_text[:-1]
-            commenting = True
-        # Create a token from a symbol
-        elif char in SYMBOLS.keys():
-            tokenize_accumulation()
-            tokens.append((SYMBOLS[char]()))
-        # Accumulate the character as text
+    while not cursor.is_at_end():
+        # Skip spaces
+        if cursor.peek().isspace():
+            cursor.advance()
+        # Comments
+        elif cursor.match_many(COMMENT):
+            while not cursor.is_at_end() and cursor.peek() != "\n":
+                cursor.advance()
+        # Grouping
+        elif cursor.match_many(GROUPING[0]):
+            tokens.append(GroupStartToken())
+        elif cursor.match_many(GROUPING[1]):
+            tokens.append(GroupEndToken())
+        # Structure
+        elif cursor.match_many(SECTION):
+            tokens.append(SectionStartToken())
+        elif cursor.match_many(LIST):
+            tokens.append(ListStartToken())
+        # Strings
         else:
-            accumulated_text += char
+            tokens += tokenize_string(cursor)
 
-    # Tokenize leftover text
-    tokenize_accumulation()
+    return tokens
 
+
+def tokenize_string(cursor: Cursor[str]) -> List[Token]:
+    tokens: List[Token] = [StringStartToken()]
+    text = ""
+
+    while not cursor.is_at_end():
+        # Terminators
+        if cursor.match_any_of(STRING_TERMINATORS) or cursor.check_any_of(BASE_SYMBOLS):
+            break
+        # Escape
+        elif cursor.match_many(ESCAPE):
+            if cursor.is_at_end():
+                raise TokenizationError("Must provide a character to escape.")
+            escaped_char = cursor.peek()
+            if escaped_char not in ESCAPABLES:
+                raise TokenizationError(f"Character {escaped_char} is not escapable.")
+            text += cursor.advance()
+        # Emphasis
+        elif cursor.match_many(EMPHASIS):
+            if text:
+                tokens.append(TextToken(text))
+                text = ""
+            tokens.append(EmphasisToken())
+        # Text
+        else:
+            text += cursor.advance()
+
+    if text:
+        tokens.append(TextToken(text.rstrip()))
+    tokens.append(StringEndToken())
     return tokens

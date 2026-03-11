@@ -2,11 +2,15 @@ import pytest
 
 from mesanote.nodes import (
     Document,
-    Text,
     Grouping,
     Section,
     List,
+    Emphasis,
+    StrongEmphasis,
+    Text,
 )
+
+from tests.utils import string_of
 
 
 def assert_render(input, expected):
@@ -17,12 +21,16 @@ def assert_render(input, expected):
     "input, expected",
     [
         (
-            Document([Text("A"), Text("B")]),
+            Document([string_of("A"), string_of("B")]),
             "<p>A</p><p>B</p>",
         ),
         (
             Document(
-                [Text("A"), Grouping([Text("B")]), Section(1, "Title", Text("C"))]
+                [
+                    string_of("A"),
+                    Grouping([string_of("B")]),
+                    Section(string_of("Title"), string_of("C"), 1),
+                ]
             ),
             "<p>A</p><p>B</p><h1>Title</h1><p>C</p>",
         ),
@@ -32,7 +40,7 @@ def test_document(input, expected):
     assert_render(input, expected)
 
 
-@pytest.mark.parametrize("input, expected", [(Text("Text"), "<p>Text</p>")])
+@pytest.mark.parametrize("input, expected", [(string_of("Text"), "<p>Text</p>")])
 def test_text(input, expected):
     assert_render(input, expected)
 
@@ -41,7 +49,7 @@ def test_text(input, expected):
     "input, expected",
     [
         (
-            Grouping([Text("A"), Text("B")]),
+            Grouping([string_of("A"), string_of("B")]),
             "<p>A</p><p>B</p>",
         ),
         (Grouping([]), ""),
@@ -54,8 +62,14 @@ def test_grouping(input, expected):
 @pytest.mark.parametrize(
     "input, expected",
     [
-        (Section(1, "Title", Text("Text")), "<h1>Title</h1><p>Text</p>"),
-        (Section(2, "Title", Text("Text")), "<h2>Title</h2><p>Text</p>"),
+        (
+            Section(string_of("Title"), string_of("Text"), 1),
+            "<h1>Title</h1><p>Text</p>",
+        ),
+        (
+            Section(string_of("Title"), string_of("Text"), 2),
+            "<h2>Title</h2><p>Text</p>",
+        ),
     ],
 )
 def test_section(input, expected):
@@ -66,16 +80,12 @@ def test_section(input, expected):
     "input, expected",
     [
         (
-            List(1, "Title", Grouping([Text("A"), Text("B")])),
-            "<h1>Title</h1><ul><li><p>A</p></li><li><p>B</p></li></ul>",
-        ),
-        (
-            List(1, "", Grouping([Text("A"), Text("B")])),
+            List(Grouping([string_of("A"), string_of("B")])),
             "<ul><li><p>A</p></li><li><p>B</p></li></ul>",
         ),
         (
-            List(2, "Title", Grouping([])),
-            "<h2>Title</h2><ul></ul>",
+            List(Grouping([])),
+            "<ul></ul>",
         ),
     ],
 )
@@ -87,14 +97,45 @@ def test_list(input, expected):
     "input, expected",
     [
         (
-            List(1, "", Grouping([Section(2, "Title", Grouping([]))])),
+            List(Grouping([Section(string_of("Title"), Grouping([]), 2)])),
             "<ul><li><h2>Title</h2></li></ul>",
         ),
         (
-            Section(1, "Title", List(2, "", Grouping([]))),
+            Section(string_of("Title"), List(Grouping([])), 1),
             "<h1>Title</h1><ul></ul>",
         ),
     ],
 )
 def test_nested(input, expected):
     assert_render(input, expected)
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (Emphasis(Text("Italics")), "<em>Italics</em>"),
+        (StrongEmphasis(Text("Bold")), "<strong>Bold</strong>"),
+        (
+            StrongEmphasis(Emphasis(Text("Bold and italics"))),
+            "<strong><em>Bold and italics</em></strong>",
+        ),
+    ],
+)
+def test_emphasis(input, expected):
+    assert_render(input, expected)
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (string_of("A<B"), "<p>A&lt;B</p>"),
+        (string_of("A>B"), "<p>A&gt;B</p>"),
+        (string_of("A&B"), "<p>A&amp;B</p>"),
+        (string_of('A"B'), "<p>A&quot;B</p>"),
+        (string_of("A'B"), "<p>A&#x27;B</p>"),
+        (Emphasis(Text("A<B")), "<em>A&lt;B</em>"),
+    ],
+)
+def test_html_escaping(input, expected):
+    assert_render(input, expected)
+

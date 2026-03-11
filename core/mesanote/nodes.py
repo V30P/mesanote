@@ -1,67 +1,104 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List as TypingList
+from typing import List as PyList
+import html
 
 
-@dataclass(eq=True)
+@dataclass()
 class Node(ABC):
     @abstractmethod
     def render(self) -> str:
         pass
 
 
-@dataclass(eq=True)
+@dataclass()
 class Document(Node):
-    contents: TypingList[Node]
+    elements: PyList[Element]
 
     def render(self) -> str:
-        return "".join(element.render() for element in self.contents)
+        return "".join(element.render() for element in self.elements)
 
 
-@dataclass(eq=True)
+@dataclass()
 class Element(Node):
     def render(self) -> str:
         return ""
 
 
-@dataclass(eq=True)
-class Text(Element):
+@dataclass()
+class Grouping(Element):
+    elements: PyList[Element]
+
+    def render(self) -> str:
+        return "".join(element.render() for element in self.elements)
+
+
+# region String nodes
+@dataclass()
+class String(Element):
+    substrings: list[Substring]
+
+    def render(self) -> str:
+        return f"<p>{self.render_substrings()}</p>"
+
+    def render_substrings(self) -> str:
+        return "".join(element.render() for element in self.substrings)
+
+
+@dataclass()
+class Substring(Node):
+    pass
+
+
+@dataclass()
+class Text(Substring):
     value: str
 
     def render(self) -> str:
-        return f"<p>{self.value}</p>"
+        return html.escape(self.value)
 
 
-@dataclass(eq=True)
-class Grouping(Element):
-    contents: TypingList[Element]
+@dataclass()
+class Emphasis(Substring):
+    substring: Substring
 
     def render(self) -> str:
-        return "".join(element.render() for element in self.contents)
+        return f"<em>{self.substring.render()}</em>"
 
 
-@dataclass(eq=True)
-class Structure(Element):
+@dataclass()
+class StrongEmphasis(Emphasis):
+    substring: Substring
+
+    def render(self) -> str:
+        return f"<strong>{self.substring.render()}</strong>"
+
+
+# endregion
+
+
+# region Structure nodes
+@dataclass()
+class Structure(Element): ...
+
+
+@dataclass()
+class Section(Structure):
+    title: String
+    element: Element
     depth: int
 
-
-@dataclass(eq=True)
-class Section(Structure):
-    title: str
-    content: Element
-
     def render(self) -> str:
-        return f"<h{self.depth}>{self.title}</h{self.depth}>{self.content.render()}"
+        return f"<h{self.depth}>{self.title.render_substrings()}</h{self.depth}>{self.element.render()}"
 
 
-@dataclass(eq=True)
+@dataclass()
 class List(Structure):
-    title: str
     grouping: Grouping
 
     def render(self) -> str:
-        header = f"<h{self.depth}>{self.title}</h{self.depth}>" if self.title else ""
-        items = "".join(
-            f"<li>{element.render()}</li>" for element in self.grouping.contents
-        )
-        return f"{header}<ul>{items}</ul>"
+        return f"<ul>{''.join(f'<li>{element.render()}</li>' for element in self.grouping.elements)}</ul>"
+
+
+# endregion

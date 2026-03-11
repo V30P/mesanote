@@ -2,12 +2,16 @@ import pytest
 
 from mesanote.tokenizer import tokenize, TokenizationError
 from mesanote.tokens import (
+    StringStartToken,
+    StringEndToken,
     TextToken,
+    EmphasisToken,
     GroupStartToken,
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
 )
+from tests.utils import tokens_of
 
 
 def assert_tokenize(input, expected):
@@ -17,7 +21,7 @@ def assert_tokenize(input, expected):
 @pytest.mark.parametrize(
     "input, expected",
     [
-        ("Text", [TextToken("Text")]),
+        ("Text", [StringStartToken(), TextToken("Text"), StringEndToken()]),
         ("{}", [GroupStartToken(), GroupEndToken()]),
         (">", [SectionStartToken()]),
         ("+", [ListStartToken()]),
@@ -35,9 +39,12 @@ def test_delimiter():
     "input, expected",
     [
         ("// Comment", []),
-        ("Text // Comment", [TextToken("Text")]),
+        ("Text // Comment", [StringStartToken(), TextToken("Text"), StringEndToken()]),
         ("// Comment | Comment", []),
-        ("// Comment \n Text", [TextToken("Text")]),
+        (
+            "// Comment \n Text",
+            [StringStartToken(), TextToken("Text"), StringEndToken()],
+        ),
     ],
 )
 def test_comments(input, expected):
@@ -51,20 +58,20 @@ def test_comments(input, expected):
             "> Title { Text }",
             [
                 SectionStartToken(),
-                TextToken("Title"),
+                *tokens_of("Title"),
                 GroupStartToken(),
-                TextToken("Text"),
+                *tokens_of("Text"),
                 GroupEndToken(),
             ],
         ),
         (
-            "+ Title { Text | Text }",
+            "+ Title { A | B }",
             [
                 ListStartToken(),
-                TextToken("Title"),
+                *tokens_of("Title"),
                 GroupStartToken(),
-                TextToken("Text"),
-                TextToken("Text"),
+                *tokens_of("A"),
+                *tokens_of("B"),
                 GroupEndToken(),
             ],
         ),
@@ -74,15 +81,43 @@ def test_mixed(input, expected):
     assert_tokenize(input, expected)
 
 
-@pytest.mark.parametrize("input", ["", " ", "|", " | ", "||"])
+@pytest.mark.parametrize("input", ["", " "])
 def test_empty(input):
     assert_tokenize(input, [])
 
 
 def test_escape():
-    assert_tokenize("\\|", [TextToken("|")])
+    assert_tokenize("\\|", [*tokens_of("|")])
 
 
 def test_invalid_escape():
     with pytest.raises(TokenizationError):
         tokenize("\\A")
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            "*",
+            [StringStartToken(), EmphasisToken(), StringEndToken()],
+        ),
+        (
+            "**",
+            [StringStartToken(), EmphasisToken(), EmphasisToken(), StringEndToken()],
+        ),
+        (
+            "*Italics*Text",
+            [
+                StringStartToken(),
+                EmphasisToken(),
+                TextToken("Italics"),
+                EmphasisToken(),
+                TextToken("Text"),
+                StringEndToken(),
+            ],
+        ),
+    ],
+)
+def test_emphasis(input, expected):
+    assert_tokenize(input, expected)

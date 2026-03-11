@@ -1,36 +1,49 @@
 from dataclasses import dataclass
 
 
-@dataclass(eq=True)
+@dataclass()
 class Token:
     pass
 
+@dataclass()
+class StringStartToken(Token):
+    pass
 
-@dataclass(eq=True)
+@dataclass()
+class StringEndToken(Token):
+    pass
+
+@dataclass()
 class TextToken(Token):
     value: str 
 
+@dataclass()
+class EmphasisToken(Token):
+    pass
 
-@dataclass(eq=True)
+
+@dataclass()
 class GroupStartToken(Token):
     pass
 
 
-@dataclass(eq=True)
+@dataclass()
 class GroupEndToken(Token):
     pass
 
 
-@dataclass(eq=True)
+@dataclass()
 class StructureStartToken(Token):
     pass
 
 
-@dataclass(eq=True)
+@dataclass()
 class SectionStartToken(StructureStartToken):
     pass
 
 
-@dataclass(eq=True)
+@dataclass()
 class ListStartToken(StructureStartToken):
     pass
+
+    

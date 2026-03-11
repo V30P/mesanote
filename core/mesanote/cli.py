@@ -65,3 +65,6 @@ def open_command(document: Path):
 
     _parse_document(document, temp_path)
     webbrowser.open(temp_path.as_uri())
+
+if __name__ == "__main__":
+    cli()

@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug CLI",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/core/mesanote/cli.py",
+            "args": "${input:cliArgs}",
+            "console": "integratedTerminal"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "cliArgs",
+            "type": "promptString",
+            "description": "Enter args"
+        }
+    ]
+}

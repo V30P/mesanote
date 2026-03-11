@@ -62,23 +62,33 @@ To start a comment use `//` which will exclude the whole line from the tokenizat
 
 ### Parsing
 
-MesaNote's grammar can be described in EBNF format as follows, where `TEXT` and `TITLE` are raw text tokens.
+MesaNote's grammar can be described in EBNF format as follows:
 
 ```
 document = { element };
-element = TEXT | grouping | structure;
+element = string | grouping | structure;
 grouping = "{" , { element } , "}";
 structure = section | list;
 ```
 
-With these definitions for specific structures:
+Strings are defined as:
+
+```
+string = { substring } 
+substring = TEXT | emphasis
+emphasis = weak_emphasis | strong_emphasis
+weak_emphasis = "*" , TEXT , "*"
+strong_emphasis =  "**" , (TEXT | weak_emphasis), "**"
+```
+
+And structures are:
 
 ```
 section = ">" TITLE, element;
-list = "+" [TITLE] , grouping;
+list = "+" grouping;
 ```
 
-Since this grammar is mostly LL(1) (although technically LL(2) due to the extra token of lookahead needed for optional list titles), it is easily parsed by a recursive descent parser.
+Since this grammar is LL(1), it is easily parsed by a recursive descent parser.
 
 ## Getting Started
 
