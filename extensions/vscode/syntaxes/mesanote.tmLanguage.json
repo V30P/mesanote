@@ -16,6 +16,10 @@
 		"comments": {
 			"patterns": [
 				{
+					"name": "keyword.operator",
+					"match": "\\\\/"
+				},
+				{
 					"name": "comment.line",
 					"match": "//.*$"
 				}
@@ -25,7 +29,7 @@
 			"patterns": [
 				{
 					"name": "keyword.operator",
-					"match": "\\\\[|>+]"
+					"match": "\\\\[{}|>+]"
 				},
 				{
 					"name": "keyword.control",

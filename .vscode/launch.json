@@ -3,11 +3,22 @@
     "configurations": [
         {
             "name": "Debug CLI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/core/mesanote/cli.py",
             "args": "${input:cliArgs}",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug VSCode Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "${workspaceFolder}/extensions/vscode/test_workspace",
+                "--disable-extensions",
+                "--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode"
+            ]
         }
     ],
     "inputs": [

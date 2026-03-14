@@ -18,6 +18,7 @@ This repository contains the following projects:
 
 2. [VS Code extension](extensions/vscode)
     - Syntax highlighting
+    - Markdown-like preview
 
 ## Examples
 
@@ -92,7 +93,7 @@ Since this grammar is LL(1), it is easily parsed by a recursive descent parser.
 
 ## Getting Started
 
-To get started with MesaNote, clone the repository and run the `setup.sh` script from the project root:
+To get started with MesaNote, clone the repository and run the `setup.sh` script located in the root directory:
 
 ```bash
 ./setup.sh

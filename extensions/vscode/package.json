@@ -1,20 +1,23 @@
 {
   "name": "mesanote",
   "displayName": "MesaNote",
-  "description": "A frill-free markup Language built for efficient, organized note taking.",
-  "version": "0.0.1",
+  "description": "A frill-free markup language built for efficient, organized note taking.",
+  "version": "0.1.0",
   "publisher": "veop",
+  "license": "MIT",
   "engines": {
-    "vscode": "^1.109.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
     "Programming Languages"
   ],
+  "main": "./extension.js",
   "contributes": {
     "languages": [
       {
         "id": "mesanote",
         "aliases": [
+          "MesaNote",
           "mesanote"
         ],
         "extensions": [
@@ -29,11 +32,42 @@
         "scopeName": "text.mesanote",
         "path": "./syntaxes/mesanote.tmLanguage.json"
       }
+    ],
+    "commands": [
+      {
+        "command": "mesanote.preview",
+        "title": "Preview Mesa Document",
+        "category": "MesaNote"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "mesanote.preview",
+          "when": "editorLangId == mesanote"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "mesanote.preview",
+        "key": "ctrl+shift+v",
+        "when": "editorLangId == mesanote"
+      }
     ]
   },
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/V30P/mesanote"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.85.0",
+    "eslint": "^8.57.0",
+    "@vscode/vsce": "^2.24.0"
   }
 }

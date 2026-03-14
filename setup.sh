@@ -1,16 +1,28 @@
-#!/bin/bash
-#
-# Install MesaNote language support
+#!/usr/bin/env bash
 
-artifacts_dir=$(realpath artifacts)
+set -Eeuo pipefail
+trap 'echo "Error: Command \"${BASH_COMMAND}\" failed"; exit 1' ERR
 
-# Install the core language package
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$script_dir"
+
+# Install core language package
+command -v pipx >/dev/null || { echo "pipx not installed"; exit 1; }
+
 echo "Installing core language package..."
-pipx install --force ./core  > /dev/null 2>&1
+pipx install --force "$script_dir/core" > /dev/null 2>&1
 
-# Pack the vscode extension
+# Package VSCode extension
 echo "Packaging VS Code extension..."
+
+command -v vsce >/dev/null || { echo "vsce not installed"; exit 1; }
+command -v realpath >/dev/null || { echo "realpath not installed"; exit 1; }
+
+artifacts_dir=$(realpath "$script_dir/artifacts")
+mkdir -p "$artifacts_dir"
+
 cd extensions/vscode
 cp ../../LICENSE .
-vsce pack --out "$artifacts_dir/mesanote.vsix" > /dev/null 2>&1
+vsce pack --out "$artifacts_dir/mesanote.vsix" > /dev/null
+
 rm LICENSE
