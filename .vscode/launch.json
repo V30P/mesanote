@@ -10,7 +10,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Debug VSCode Extension",
+            "name": "Debug VS Code Extension",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
