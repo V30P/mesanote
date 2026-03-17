@@ -9,7 +9,7 @@
 			"include": "#symbols"
 		},
 		{
-			"include": "#markdown"
+			"include": "#string_symbols"
 		}
 	],
 	"repository": {
@@ -37,7 +37,7 @@
 				}
 			]
 		},
-		"markdown": {
+		"string_symbols": {
 			"patterns": [
 				{
 					"name": "markup.bold",
