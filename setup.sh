@@ -7,9 +7,9 @@ root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$root_dir"
 
 # Install core language package
-command -v pipx >/dev/null || { echo "pipx not installed"; exit 1; }
-
 echo "Installing core language package..."
+
+command -v pipx >/dev/null || { echo "pipx not installed"; exit 1; }
 pipx install --force "$root_dir/core" > /dev/null 2>&1
 
 # Package VS Code extension

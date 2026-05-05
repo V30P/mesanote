@@ -1,2 +1,7 @@
+# Setup artifacts
 artifacts/
-.pytest_cache/
+
+# Hidden files
+.*
+!.gitignore
+!.editorconfig

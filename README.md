@@ -1,29 +1,29 @@
 # MesaNote
 
-A frill-free markup language built for efficient, organized note taking.
+A frill-free markup language for quickly creating structured notes.
 
 ## Overview
 
-MesaNote is designed as a markdown replacement for notetakers seeking a more rigidly structured syntax. Markdown’s flexibility makes it easy to use, but its loose structure can make large notes messy and difficult to interpret. MesaNote aims to solve this by taking some beloved elements of markdown and adding structure through features borrowed from classic C syntax. By convention, files in MesaNote format have the `.mdoc` (mesa document) extension, although this is by no means required.
+MesaNote is a markdown replacement for notetakers seeking a more rigid syntax. Markdown’s flexibility makes it easy to use, but its loose structure can make large notes messy and difficult to interpret. MesaNote aims to solve this by taking some elements of Markdown and adding structure through C-style syntax. By convention, files use the `.mdoc` (Mesa document) extension, although this is not required.
 
-In developing MesaNote, my goals are both to explore language creation and build something that I can use myself. For these reasons, the project includes minimal dependencies and focuses on simple, practical features built for everyday notetaking. This document is aimed at giving an overview of the design and functionality of the project, but if you wish to jump straight into learning MesaNote's syntax, see the syntax guide [here](SYNTAX.md).
+## Contents
 
 This repository contains the following projects:
 
 1. [Parser and CLI](core)
-    - Low-dependency, pure Python implementation
-    - Custom tokenizer, recursive descent parser, and AST
-    - Simple, intuitive CLI
-    - Test suite for core functionality
+   - Low-dependency, pure Python implementation
+   - Custom tokenizer, recursive descent parser, and AST
+   - Easy-to-use CLI
+   - Core test suite
 
 2. [VS Code extension](extensions/vscode)
-    - Automatic language detection
-    - Syntax highlighting
-    - Markdown-like preview
+   - Automatic language detection
+   - Syntax highlighting
+   - Markdown-like preview
 
 ## Examples
 
-A basic Mesa Document might look something like this:
+A basic Mesa Document might look like this:
 
 ```cpp
 > Project Launch 
@@ -42,97 +42,84 @@ A basic Mesa Document might look something like this:
 }
 ```
 
-Which would render to this HTML:
+Which is roughly equivalent to Markdown:
 
-```html
-<h1>Project Launch</h1>
-<h2>Tasks</h2>
-<ul>
-    <li>
-        <h4>Setup Repository</h4>
-        <p>Alice</p>
-    </li>
-    <li>
-        <h4>Create Roadmap</h4>
-        <ul>
-            <li>
-                <p>Bob</p>
-            </li>
-            <li>
-                <p>Linda</p>
-            </li>
-        </ul>
-    </li>
-</ul>
+```markdown
+# Project Launch
+## Tasks
+- ### Setup Repository
+    Alice
+
+- ### Create Roadmap
+    - Bob
+    - Linda
 ```
 
-For more sample documents, see the examples directory [here](examples). To see the rendered output of a document, look for the `.html` file of the same name, or use the CLI to parse the document yourself.
+For more sample documents, see the [`examples`](examples) directory. Rendered output can be found in corresponding `.html` files.
 
 ## Design
 
-From a design perspective, MesaNote is intentionally minimal, being small enough to fully describe with a compact EBNF grammar and parse using a hand-written recursive descent parser. Each element of MesaNote's syntax has been carefully designed to optimize for intuitive, fast notetaking.
-
 ### Goals
+
+The design of MesaNote is guided by the following objectives:
 
 - Fast, easy-to-type syntax
 - Deterministic grammar (LL(1)-friendly)
-- Familiar bracket-based structure
-- C-style comments
-- Quotation mark-free strings
+- Overall C-family stylization
+- Rigid, bracket-based structure
+- Quotation-mark-free strings
 
 ### Tokenization
 
-Tokens are either part of a string, a grouping (`{}`), or a structure (like `>`). Strings can be divided by a newline or a vertical bar `|` which allows for multiple to be written on the same line. Outside of strings, grouping and structure symbols both translate to their token equivalent 1 to 1.
+Tokens consist of strings, groupings (`{}`), or structural markers (such as `>` and `+`). Strings can be split using newline or `|` to allow multiple values per line. Outside of strings, grouping and structural symbols map directly to tokens.
 
-To start a comment use `//`. This will exclude the rest of the line from the tokenization process. A single `\` can be used to escape characters with special meaning, so `\>` will be interpreted as an actual `>` rather than the start of a section. 
+Comments begin with `//` and extend to the end of the line. A backslash (`\`) can be used to escape special characters, e.g. `\>`.
 
 ### Parsing
 
-MesaNote's grammar can be described in EBNF format as follows:
+MesaNote’s grammar can be described in EBNF as:
 
-```
+```ebnf
 document = { element } ;
 element = string | grouping | structure ;
 grouping = "{" , { element } , "}" ;
-structure = section | list ;
-```
 
-Strings are defined as:
-
-```
+(* Strings *)
 string = { substring } ;
-substring = TEXT | emphasis ; ;
+substring = TEXT | emphasis ;
 emphasis = weak_emphasis | strong_emphasis ;
 weak_emphasis = "*" , TEXT , "*" ;
-strong_emphasis =  "**" , (TEXT | emphasis), "**" ;
+strong_emphasis = "**" , (TEXT | emphasis) , "**" ;
+
+(* Structures *)
+structure = section | list ;
+section = ">" , string , element ;
+list = "+" , grouping ;
 ```
 
-And structures are defined as:
-
-```
-section = ">" string, element ;
-list = "+" grouping ;
-```
-
-Since this grammar is fully LL(1), it can be easily parsed by MesaNote's custom recursive descent parser implementation.
+Because this grammar is LL(1), it is a prime candidate for parsing using recursive descent, which is how MesaNote's parser is implemented.
 
 ## Getting Started
 
-To get started with MesaNote, clone the repository and run the `setup.sh` script located in the root directory:
+To get started with MesaNote, clone the repository and run the setup script:
 
 ```bash
 ./setup.sh
 ```
 
-This will install the core python package, which includes the MesaNote CLI accessible via the command `mesa`. For help working with the CLI, use:
+This installs the core Python package, including the `mesa` CLI:
 
 ```bash
+# Help
 mesa --help
+
+# Run a command
+mesa COMMAND
 ```
 
-For those seeking a more complete notetaking experience including syntax highlighting and preview support, `setup.sh` also packages MesaNote's VS Code extension to `artifacts/mesanote.vsix`. To add the extension to VS Code, use the "install from VSIX" option in the extensions menu.
+For full functionality including syntax highlighting and preview support, the script also generates a VS Code extension package at `artifacts/mesanote.vsix`. Install it via “Install from VSIX” in VS Code.
 
-After everything is set up, see the syntax guide [here](SYNTAX.md) for information on how to use MesaNote's features to create your own documents.
+After setup, refer to the [syntax guide](SYNTAX.md) for language details.
 
 ## License
 
