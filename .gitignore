@@ -3,5 +3,8 @@ artifacts/
 
 # Hidden files
 .*
-!.gitignore
+
 !.editorconfig
+!.gitignore
+
+!.vscode/launch.json

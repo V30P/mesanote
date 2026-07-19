@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug CLI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "mesanote.cli",
+            "args": "${input:promptSubcommand}"
+        },
+        {
+            "name": "Debug VSCode Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/extension",
+                "${workspaceFolder}/extension/test_workspace"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "promptSubcommand",
+            "description": "Enter subcommand",
+            "type": "promptString",
+        }
+    ]
+}

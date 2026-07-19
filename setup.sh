@@ -21,7 +21,7 @@ command -v realpath >/dev/null || { echo "realpath not installed"; exit 1; }
 artifacts_dir=$(realpath "$root_dir/artifacts")
 mkdir -p "$artifacts_dir"
 
-cd extensions/vscode
+cd extension
 cp ../../LICENSE .
 vsce pack --out "$artifacts_dir/mesanote.vsix" > /dev/null
 

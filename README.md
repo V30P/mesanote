@@ -16,7 +16,7 @@ This repository contains the following projects:
    - Easy-to-use CLI
    - Core test suite
 
-2. [VS Code extension](extensions/vscode)
+2. [VS Code extension](extension)
    - Automatic language detection
    - Syntax highlighting
    - Markdown-like preview
