@@ -1,20 +1,30 @@
-[tool.poetry]
+[project]
 name = "mesanote"
 version = "0.1.0"
 description = ""
-authors = ["V30P <nhenning06@gmail.com>"]
+authors = [
+    { name = "V30P", email = "nhenning06@gmail.com" },
+]
 readme = "README.md"
+requires-python = ">=3.12,<4"
+dependencies = [
+    "click>=8.3.1,<9",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-click = "^8.3.1"
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2,<10",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^9.0.2"
-
-[tool.poetry.scripts]
+[project.scripts]
 mesa = "mesanote.cli:cli"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = [
+    "hatchling",
+    "editables",
+]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mesanote"]
