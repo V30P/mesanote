@@ -138,4 +138,3 @@ def test_emphasis(input, expected):
 )
 def test_html_escaping(input, expected):
     assert_render(input, expected)
-

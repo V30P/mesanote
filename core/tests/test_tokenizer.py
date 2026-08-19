@@ -1,11 +1,13 @@
 import pytest
 
+from mesanote.cursor import CursorError
 from mesanote.tokenizer import tokenize, TokenizationError
 from mesanote.tokens import (
     StringStartToken,
     StringEndToken,
     TextToken,
     EmphasisToken,
+    CodeToken,
     GroupStartToken,
     GroupEndToken,
     SectionStartToken,

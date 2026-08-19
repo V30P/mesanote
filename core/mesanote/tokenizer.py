@@ -7,8 +7,7 @@ from mesanote.tokens import (
     StringEndToken,
     TextToken,
     EmphasisToken,
-    CodeStartToken,
-    CodeEndToken,
+    CodeToken,
     GroupStartToken,
     GroupEndToken,
     SectionStartToken,
@@ -29,15 +28,14 @@ CODE = "`"
 STRING_SYMBOLS = [EMPHASIS, ESCAPE, CODE]
 
 STRING_TERMINATORS = ["\n", "|"]
-ESCAPABLES = [
-    s[0] for s in [*BASE_SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]
-]  # TODO: Make this work for multi-char symbols
+ESCAPABLES = [*BASE_SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]
 
 
 class TokenizationError(Exception):
     pass
 
 
+# TODO: Add catching and formatting other errors as TokenizationErrors
 def tokenize(text: str) -> List[Token]:
     cursor = Cursor(text)
     tokens: List[Token] = []
@@ -77,12 +75,7 @@ def tokenize_string(cursor: Cursor[str]) -> List[Token]:
             break
         # Escape
         elif cursor.match_many(ESCAPE):
-            if cursor.is_at_end():
-                raise TokenizationError("Must provide a character to escape.")
-            escaped_char = cursor.peek()
-            if escaped_char not in ESCAPABLES:
-                raise TokenizationError(f"Character {escaped_char} is not escapable.")
-            text += cursor.advance()
+            text += get_escaped_text(cursor)
         # Emphasis
         elif cursor.match_many(EMPHASIS):
             if text:
@@ -94,7 +87,7 @@ def tokenize_string(cursor: Cursor[str]) -> List[Token]:
             if text:
                 tokens.append(TextToken(text))
                 text = ""
-            tokens += tokenize_code(cursor);
+            tokens += tokenize_code(cursor)
         # Text
         else:
             text += cursor.advance()
@@ -104,13 +97,25 @@ def tokenize_string(cursor: Cursor[str]) -> List[Token]:
     tokens.append(StringEndToken())
     return tokens
 
+
+def get_escaped_text(cursor: Cursor[str]) -> str:
+    if cursor.is_at_end():
+        raise TokenizationError("Must provide a character to escape.")
+
+    for escapable in ESCAPABLES:
+        if cursor.check_many(escapable):
+            return cursor.advance_many(len(escapable))
+
+    raise TokenizationError("Escape is not followed by an escapable sequence.")
+
+
 def tokenize_code(cursor: Cursor[str]) -> List[Token]:
     code_symbol_count = 1
     while cursor.match_many(CODE):
-        code_symbol_count += 1;
+        code_symbol_count += 1
 
     text = ""
     while not cursor.match_many(CODE * code_symbol_count):
         text += cursor.advance()
 
-    return [CodeStartToken(), TextToken(text), CodeEndToken()]
+    return [CodeToken(text)]

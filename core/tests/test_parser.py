@@ -5,8 +5,8 @@ from mesanote.parser import parse, ParseError
 from mesanote.tokens import (
     StringStartToken,
     StringEndToken,
-    EmphasisToken,
     TextToken,
+    EmphasisToken,
     GroupStartToken,
     GroupEndToken,
     SectionStartToken,
@@ -156,7 +156,7 @@ def test_no_grouping_list():
                 Section(
                     string_of("Title"),
                     Section(string_of("Title"), string_of("Text"), 2),
-                    1
+                    1,
                 )
             ],
         ),

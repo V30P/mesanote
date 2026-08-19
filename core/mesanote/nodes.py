@@ -77,11 +77,11 @@ class StrongEmphasis(Emphasis):
 
 @dataclass()
 class Code(Substring):
-    text: Text
+    value: str
 
     def render(self):
-        html = self.text.render()
-        if "\n" in self.text.value:
+        html = self.value
+        if "\n" in self.value:
             html = (
                 "<pre>"
                 + textwrap.dedent(html.removeprefix("\n").removesuffix("\n"))

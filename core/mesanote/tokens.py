@@ -27,12 +27,8 @@ class EmphasisToken(Token):
 
 
 @dataclass()
-class CodeStartToken(Token):
-    pass
-
-
-@dataclass()
-class CodeEndToken(Token):
+class CodeToken(Token):
+    value: str
     pass
 
 
