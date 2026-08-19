@@ -7,30 +7,31 @@ from mesanote.tokens import (
     StringEndToken,
     TextToken,
     EmphasisToken,
+    CodeStartToken,
+    CodeEndToken,
     GroupStartToken,
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
 )
 
-# region Base symbols
 COMMENT = "//"
 GROUPING = ("{", "}")
 SECTION = ">"
 LIST = "+"
 
 BASE_SYMBOLS = [*GROUPING, COMMENT, SECTION, LIST]
-# endregion
 
-# region String symbols
 EMPHASIS = "*"
 ESCAPE = "\\"
+CODE = "`"
 
-STRING_SYMBOLS = [EMPHASIS, ESCAPE]
+STRING_SYMBOLS = [EMPHASIS, ESCAPE, CODE]
 
 STRING_TERMINATORS = ["\n", "|"]
-ESCAPABLES = [s[0] for s in [*BASE_SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]]
-# endregion
+ESCAPABLES = [
+    s[0] for s in [*BASE_SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]
+]  # TODO: Make this work for multi-char symbols
 
 
 class TokenizationError(Exception):
@@ -88,6 +89,12 @@ def tokenize_string(cursor: Cursor[str]) -> List[Token]:
                 tokens.append(TextToken(text))
                 text = ""
             tokens.append(EmphasisToken())
+        # Codeblocks
+        elif cursor.match_many(CODE):
+            if text:
+                tokens.append(TextToken(text))
+                text = ""
+            tokens += tokenize_code(cursor);
         # Text
         else:
             text += cursor.advance()
@@ -96,3 +103,14 @@ def tokenize_string(cursor: Cursor[str]) -> List[Token]:
         tokens.append(TextToken(text.rstrip()))
     tokens.append(StringEndToken())
     return tokens
+
+def tokenize_code(cursor: Cursor[str]) -> List[Token]:
+    code_symbol_count = 1
+    while cursor.match_many(CODE):
+        code_symbol_count += 1;
+
+    text = ""
+    while not cursor.match_many(CODE * code_symbol_count):
+        text += cursor.advance()
+
+    return [CodeStartToken(), TextToken(text), CodeEndToken()]

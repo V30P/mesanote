@@ -5,20 +5,34 @@ from dataclasses import dataclass
 class Token:
     pass
 
+
 @dataclass()
 class StringStartToken(Token):
     pass
+
 
 @dataclass()
 class StringEndToken(Token):
     pass
 
+
 @dataclass()
 class TextToken(Token):
-    value: str 
+    value: str
+
 
 @dataclass()
 class EmphasisToken(Token):
+    pass
+
+
+@dataclass()
+class CodeStartToken(Token):
+    pass
+
+
+@dataclass()
+class CodeEndToken(Token):
     pass
 
 
@@ -45,5 +59,3 @@ class SectionStartToken(StructureStartToken):
 @dataclass()
 class ListStartToken(StructureStartToken):
     pass
-
-    

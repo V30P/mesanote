@@ -7,6 +7,8 @@ from mesanote.tokens import (
     StringEndToken,
     TextToken,
     EmphasisToken,
+    CodeStartToken,
+    CodeEndToken,
     GroupStartToken,
     GroupEndToken,
     StructureStartToken,
@@ -21,6 +23,7 @@ from mesanote.nodes import (
     Text,
     Emphasis,
     StrongEmphasis,
+    Code,
     Grouping,
     Structure,
     Section,
@@ -40,11 +43,17 @@ class Parse:
 
         try:
             self.result = self.parse_document()
-        except CursorError as e:
+        except Exception as e:
             raise ParseError(f"Error while parsing {self.context}: {e}")
 
-    def peek_is[T: Token](self, token_type: type):
+    def peek_type[T: Token](self, token_type: type) -> bool:
         return isinstance(self.cursor.peek(), token_type)
+
+    def match_type[T: Token](self, token_type: type) -> bool:
+        matched = self.peek_type(token_type)
+        if matched:
+            self.cursor.advance()
+        return matched
 
     def parse_document(self) -> Document:
         content = []
@@ -55,14 +64,14 @@ class Parse:
     def parse_element(self) -> Element:
         self.context = "element"
 
-        if self.peek_is(StringStartToken):
+        if self.peek_type(StringStartToken):
             return self.parse_string()
-        elif self.peek_is(GroupStartToken):
+        elif self.peek_type(GroupStartToken):
             return self.parse_grouping()
-        elif self.peek_is(StructureStartToken):
+        elif self.peek_type(StructureStartToken):
             return self.parse_structure()
 
-        raise ParseError(
+        raise Exception(
             f"Cannot start an element with token of type: '{type(self.cursor.peek()).__name__}'."
         )
 
@@ -71,19 +80,18 @@ class Parse:
         self.cursor.advance()
 
         elements = []
-        while not self.peek_is(GroupEndToken):
+        while not self.peek_type(GroupEndToken):
             elements.append(self.parse_element())
 
         self.cursor.advance()
         return Grouping(elements)
 
-    # region String parsing
     def parse_string(self) -> String:
         self.context = "string"
         self.cursor.advance()
 
         substrings = []
-        while not self.peek_is(StringEndToken):
+        while not self.peek_type(StringEndToken):
             substrings.append(self.parse_substring())
 
         self.cursor.advance()
@@ -93,12 +101,14 @@ class Parse:
         self.context = "substring"
         token = self.cursor.peek()
 
-        if self.peek_is(TextToken):
-            return Text(cast(TextToken, self.cursor.advance()).value)
-        elif self.peek_is(EmphasisToken):
+        if self.peek_type(TextToken):
+            return self.parse_text()
+        elif self.peek_type(EmphasisToken):
             return self.parse_emphasis()
+        elif self.peek_type(CodeStartToken):
+            return self.parse_code()
 
-        raise ParseError(
+        raise Exception(
             f"Cannot start a substring with token of type: '{token.__class__.__name__}'."
         )
 
@@ -107,55 +117,65 @@ class Parse:
 
     def parse_emphasis(self) -> Emphasis:
         self.context = "emphasis"
-        self.cursor.advance()  # Consume opening *
+        self.match_type(EmphasisToken)
 
-        if self.peek_is(TextToken):
+        if self.peek_type(TextToken):
             text = self.parse_text()
-            if not self.cursor.match(EmphasisToken()):
-                raise ParseError("Emphasis was not closed.")
+            if not self.match_type(EmphasisToken):
+                raise Exception("Emphasis was not closed.")
 
             return Emphasis(text)
-        elif self.peek_is(EmphasisToken):
+        elif self.peek_type(EmphasisToken):
             return self.parse_strong_emphasis()
 
-        raise ParseError(
+        raise Exception(
             f"Emphasis cannot contain token of type: '{type(self.cursor.peek()).__name__}'."
         )
 
     def parse_strong_emphasis(self) -> StrongEmphasis:
         self.context = "strong emphasis"
-        self.cursor.advance()  # Consume remaining opening *
+        self.match_type(EmphasisToken)
 
-        if self.peek_is(TextToken):
+        if self.peek_type(TextToken):
             text = self.parse_text()
             if not self.cursor.match_many([EmphasisToken(), EmphasisToken()]):
-                raise ParseError("Strong emphasis was not closed.")
+                raise Exception("Strong emphasis was not closed.")
 
             return StrongEmphasis(text)
-        elif self.peek_is(EmphasisToken):
+        elif self.peek_type(EmphasisToken):
             emphasis = self.parse_emphasis()
             if not self.cursor.match_many([EmphasisToken(), EmphasisToken()]):
-                raise ParseError("Strong emphasis was not closed.")
+                raise Exception("Strong emphasis was not closed.")
 
             return StrongEmphasis(emphasis)
 
-        raise ParseError(
+        raise Exception(
             f"Strong emphasis cannot contain token of type: '{type(self.cursor.peek()).__name__}'."
         )
 
-    # endregion
+    def parse_code(self) -> Code:
+        self.context = "code"
+        self.match_type(CodeStartToken)
 
-    # region Structure parsing
+        if not self.peek_type(TextToken):
+            raise Exception("Code block must contain text.")
+        text = self.parse_text()
+
+        if not self.match_type(CodeEndToken):
+            raise Exception("Code block was not closed.")
+
+        return Code(text)
+
     def parse_structure(self) -> Structure:
         self.context = "structure"
         self.depth += 1
 
-        if self.peek_is(SectionStartToken):
+        if self.peek_type(SectionStartToken):
             structure = self.parse_section()
-        elif self.peek_is(ListStartToken):
+        elif self.peek_type(ListStartToken):
             structure = self.parse_list()
         else:
-            raise ParseError(
+            raise Exception(
                 f"Cannot start a structure with token of type: '{type(self.cursor.peek()).__name__}'."
             )
 
@@ -164,7 +184,7 @@ class Parse:
 
     def parse_section(self) -> Section:
         self.context = "section"
-        self.cursor.advance()
+        self.match_type(SectionStartToken)
 
         title = self.parse_string()
         element = self.parse_element()
@@ -172,14 +192,12 @@ class Parse:
 
     def parse_list(self) -> List:
         self.context = "list"
-        self.cursor.advance()
+        self.match_type(ListStartToken)
 
-        if not self.peek_is(GroupStartToken):
-            raise ParseError("List must be followed by a grouping.")
+        if not self.peek_type(GroupStartToken):
+            raise Exception("List must be followed by a grouping.")
 
         return List(self.parse_grouping())
-
-    # endregion
 
 
 def parse(tokens: PyList[Token]) -> Document:

@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List as PyList
 import html
+import textwrap
 
 
 @dataclass()
@@ -34,7 +35,6 @@ class Grouping(Element):
         return "".join(element.render() for element in self.elements)
 
 
-# region String nodes
 @dataclass()
 class String(Element):
     substrings: list[Substring]
@@ -75,10 +75,22 @@ class StrongEmphasis(Emphasis):
         return f"<strong>{self.substring.render()}</strong>"
 
 
-# endregion
+@dataclass()
+class Code(Substring):
+    text: Text
+
+    def render(self):
+        html = self.text.render()
+        if "\n" in self.text.value:
+            html = (
+                "<pre>"
+                + textwrap.dedent(html.removeprefix("\n").removesuffix("\n"))
+                + "</pre>"
+            )
+
+        return "<code>" + html + "</code>"
 
 
-# region Structure nodes
 @dataclass()
 class Structure(Element): ...
 
@@ -99,6 +111,3 @@ class List(Structure):
 
     def render(self) -> str:
         return f"<ul>{''.join(f'<li>{element.render()}</li>' for element in self.grouping.elements)}</ul>"
-
-
-# endregion

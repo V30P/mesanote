@@ -13,11 +13,10 @@ class Cursor[T]:
     def is_at_end(self) -> bool:
         return self.pos >= len(self.sequence)
 
-# region Single element methods
     def peek(self) -> T:
         if self.is_at_end():
             raise CursorError("Cannot peek past the end of the sequence.")
-        
+
         return self.sequence[self.pos]
 
     def advance(self) -> T:
@@ -28,18 +27,16 @@ class Cursor[T]:
     def check(self, element: T) -> bool:
         if self.is_at_end():
             return False
-        
+
         return self.sequence[self.pos] == element
 
     def match(self, element: T) -> bool:
         if self.check(element):
             self.pos += 1
             return True
-        
-        return False
-# endregion
 
-# region Multiple element methods
+        return False
+
     def peek_many(self, n: int) -> Sequence[T]:
         if self.pos + n > len(self.sequence):
             raise CursorError("Cannot peek past the end of the sequence.")
@@ -48,7 +45,7 @@ class Cursor[T]:
     def advance_many(self, n: int) -> Sequence[T]:
         if self.pos + n > len(self.sequence):
             raise CursorError("Cannot advance past the end of the sequence.")
-        
+
         elements = self.sequence[self.pos : self.pos + n]
         self.pos += n
         return elements
@@ -57,18 +54,16 @@ class Cursor[T]:
         n = len(sequence)
         if self.pos + n > len(self.sequence):
             return False
-        
+
         return self.peek_many(n) == sequence
 
     def match_many(self, sequence: Sequence[T]) -> bool:
         if self.check_many(sequence):
             self.pos += len(sequence)
             return True
-        
-        return False
-# endregion
 
-# region Multiple sequence methods
+        return False
+
     def check_any_of(self, values: Iterable[T | Sequence[T]]) -> bool:
         for value in values:
             if isinstance(value, Sequence) and (
@@ -79,7 +74,6 @@ class Cursor[T]:
             else:
                 if self.check(cast(T, value)):
                     return True
-
 
         return False
 
@@ -95,4 +89,3 @@ class Cursor[T]:
                     return True
 
         return False
-# endregion

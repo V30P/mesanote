@@ -37,7 +37,6 @@ def _parse_document(document_path: Path, output_path: Path) -> None:
         file.write(html)
 
 
-# region CLI
 @click.group()
 def cli():
     """The core CLI for the MesaNote markup language."""
@@ -97,4 +96,3 @@ def open_command(document: Path):
 
 if __name__ == "__main__":
     cli()
-# endregion
