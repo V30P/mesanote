@@ -120,7 +120,7 @@
             options.programs.mesanote.enable = lib.mkEnableOption "MesaNote";
 
             config = lib.mkIf config.programs.mesanote.enable {
-              home.packages = [ self.packages.${pkgs.system}.default ];
+              home.packages = [ self.packages.${pkgs.stdenv.hostPlatform.system}.default ];
             };
           };
       };

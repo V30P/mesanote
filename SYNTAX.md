@@ -1,12 +1,25 @@
 # MesaNote Syntax Guide
 
-This document serves as a reference for MesaNote syntax. If you want to use MesaNote but have not set up the project yet, see the README’s [Getting Started](README.md#getting-started) section.
+This file serves as a reference for MesaNote syntax. If you want to use MesaNote but have not set it up yet, see the README’s [Getting Started](README.md#getting-started) section.
 
 MesaNote documents are composed of three primary elements: strings, groupings, and structures. This guide describes each of them and how they are used.
 
+## Contents
+
+1. [Strings](#strings)
+    - [Emphasis](#emphasis)
+    - [Code Blocks](#code-blocks)
+    - [Escaping](#code-blocks)
+2. [Groupings](#groupings)
+3. [Structures](#structures)
+    - [Sections](#sections)
+    - [Lists](#lists)
+    - [Tables](#tables)
+4. [Comments](#comments)
+
 ## Strings
 
-Strings are the most basic element of MesaNote and represent plain text. Any text that is not part of another syntactic construct is treated as a string.
+Strings are the most basic element of MesaNote and represent some form of plain text. Any text that is not part of another syntactic construct is treated as a string.
 
 ```cpp
 This is a string
@@ -21,9 +34,9 @@ String B
 String A | String B
 ```
 
-### Emphasis (`*`)
+### Emphasis
 
-Text can be emphasized using asterisks:
+Text in strings can be emphasized using asterisks:
 
 ```cpp
 *This is important*
@@ -31,7 +44,26 @@ Text can be emphasized using asterisks:
 ***This is super important***
 ```
 
-### Escaping (`\`)
+### Code Blocks
+
+Code blocks are used to indicate that part of a string is code. They begin and end matching sets of one or more `` ` ``. 
+
+Code blocks can span multiple lines.
+
+```cpp
+`
+message = "HELLO WORLD"
+print(message)
+`
+```
+
+They can also be part of a larger string.
+
+```cpp
+This code `HELLO WORLD` is part of a string
+````
+
+### Escaping
 
 Special syntax characters can be escaped using a backslash:
 
@@ -39,9 +71,9 @@ Special syntax characters can be escaped using a backslash:
 3 \* 5 = 15
 ```
 
-## Groupings (`{}`)
+## Groupings
 
-Groupings allow multiple elements to be treated as a single unit. This is useful when a structure expects one element but multiple elements are needed.
+Groupings allow multiple elements to be treated as a single unit. On their own, groupings are not very useful, but they are key for working with structures.
 
 ```cpp
 {
@@ -50,7 +82,23 @@ Groupings allow multiple elements to be treated as a single unit. This is useful
 }
 ```
 
-## Sections (`>`)
+## Structures
+
+Structures provide formatting outside of what is available with just plain  text. 
+
+In general, structures take the form:
+
+```cpp
+<strucure symbol> [args]
+```
+
+It is common practice to pass groupings to structures when the structure should contain multiple subelements.
+
+```cpp
+<structure symbol> { A | B }
+```
+
+### Sections
 
 Sections assign a title to an element. A section begins with `>` followed by a string (title) and an element (content).
 
@@ -75,9 +123,9 @@ Sections can be nested, resulting in a hierarchical structure when rendered.
 My subsection content
 ```
 
-## Lists (`+`)
+### Lists
 
-Lists define an unordered collection of elements. A list begins with `+` followed by a grouping of items.
+Lists create  an unordered collection of elements. A list begins with `+` followed by a grouping containing the list's elements.
 
 ```cpp
 + {
@@ -86,8 +134,31 @@ Lists define an unordered collection of elements. A list begins with `+` followe
     String C
 }
 ```
+### Tables 
 
-## Comments (`//`)
+Tables organize content into a grid. They begin with a `#` followed by a grouping where each element is one cell in the table. 
+
+Tables given can be one-dimensional.
+
+```cpp
+# {
+    A
+    B
+    C
+}
+```
+
+They can also be two-dimensional.
+
+```cpp
+# {
+    { A1 | B1 | C1 }
+    { A2 | B2 | C2 }
+}
+```
+
+
+## Comments
 
 Comments begin with `//` and extend to the end of the line. They are ignored by the parser.
 
@@ -97,9 +168,9 @@ This is a normal string // This is a comment
 
 ## Further Reading
 
-After reviewing this guide, you should have a working understanding of MesaNote syntax. You can now create and parse Mesa Documents using either the CLI or the VS Code extension.
+After reviewing this guide, you should have a working understanding of MesaNote syntax. You can now create and parse Mesa Documents using either the CLI or VS Code extension.
 
 For more information, see:
 
-- The [`examples`](examples) directory for sample documents
-- The README’s [Design](README.md#design) section for technical background
+- The [`examples/`](examples) directory for sample documents
+- The README’s [Design](README.md#design) section for a more techincal look at MesaNote syntax
