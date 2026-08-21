@@ -28,14 +28,6 @@ class Element(Node):
 
 
 @dataclass()
-class Grouping(Element):
-    elements: PyList[Element]
-
-    def render(self) -> str:
-        return "".join(element.render() for element in self.elements)
-
-
-@dataclass()
 class String(Element):
     substrings: list[Substring]
 
@@ -80,15 +72,23 @@ class Code(Substring):
     value: str
 
     def render(self):
-        html = self.value
-        if "\n" in self.value:
-            html = (
+        value = html.escape(self.value)
+        if "\n" in value:
+            value = (
                 "<pre>"
-                + textwrap.dedent(html.removeprefix("\n").removesuffix("\n"))
+                + textwrap.dedent(value.removeprefix("\n").removesuffix("\n"))
                 + "</pre>"
             )
 
-        return "<code>" + html + "</code>"
+        return "<code>" + value + "</code>"
+
+
+@dataclass()
+class Grouping(Element):
+    elements: PyList[Element]
+
+    def render(self) -> str:
+        return "".join(element.render() for element in self.elements)
 
 
 @dataclass()

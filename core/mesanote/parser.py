@@ -34,7 +34,7 @@ class ParseError(Exception):
     pass
 
 
-# TODO: Improve out error handling here
+# TODO: Improve error handling here
 class Parse:
     def __init__(self, tokens: PyList[Token]):
         self.cursor = Cursor(tokens)

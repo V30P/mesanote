@@ -2,15 +2,15 @@ import pytest
 
 from mesanote.nodes import (
     Document,
+    String,
+    Text,
+    Emphasis,
+    StrongEmphasis,
+    Code,
     Grouping,
     Section,
     List,
-    Emphasis,
-    StrongEmphasis,
-    Text,
 )
-
-from tests.utils import string_of
 
 
 def assert_render(input, expected):
@@ -21,15 +21,15 @@ def assert_render(input, expected):
     "input, expected",
     [
         (
-            Document([string_of("A"), string_of("B")]),
+            Document([String([Text("A")]), String([Text("B")])]),
             "<p>A</p><p>B</p>",
         ),
         (
             Document(
                 [
-                    string_of("A"),
-                    Grouping([string_of("B")]),
-                    Section(string_of("Title"), string_of("C"), 1),
+                    String([Text("A")]),
+                    Grouping([String([Text("B")])]),
+                    Section(String([Text("Title")]), String([Text("C")]), 1),
                 ]
             ),
             "<p>A</p><p>B</p><h1>Title</h1><p>C</p>",
@@ -40,73 +40,15 @@ def test_document(input, expected):
     assert_render(input, expected)
 
 
-@pytest.mark.parametrize("input, expected", [(string_of("Text"), "<p>Text</p>")])
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (String([Text("Text")]), "<p>Text</p>"),
+        (String([Text("A<B")]), "<p>A&lt;B</p>"),
+        (String([Text("A&B")]), "<p>A&amp;B</p>"),
+    ],
+)
 def test_text(input, expected):
-    assert_render(input, expected)
-
-
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        (
-            Grouping([string_of("A"), string_of("B")]),
-            "<p>A</p><p>B</p>",
-        ),
-        (Grouping([]), ""),
-    ],
-)
-def test_grouping(input, expected):
-    assert_render(input, expected)
-
-
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        (
-            Section(string_of("Title"), string_of("Text"), 1),
-            "<h1>Title</h1><p>Text</p>",
-        ),
-        (
-            Section(string_of("Title"), string_of("Text"), 2),
-            "<h2>Title</h2><p>Text</p>",
-        ),
-    ],
-)
-def test_section(input, expected):
-    assert_render(input, expected)
-
-
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        (
-            List(Grouping([string_of("A"), string_of("B")])),
-            "<ul><li><p>A</p></li><li><p>B</p></li></ul>",
-        ),
-        (
-            List(Grouping([])),
-            "<ul></ul>",
-        ),
-    ],
-)
-def test_list(input, expected):
-    assert_render(input, expected)
-
-
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        (
-            List(Grouping([Section(string_of("Title"), Grouping([]), 2)])),
-            "<ul><li><h2>Title</h2></li></ul>",
-        ),
-        (
-            Section(string_of("Title"), List(Grouping([])), 1),
-            "<h1>Title</h1><ul></ul>",
-        ),
-    ],
-)
-def test_nested(input, expected):
     assert_render(input, expected)
 
 
@@ -128,13 +70,95 @@ def test_emphasis(input, expected):
 @pytest.mark.parametrize(
     "input, expected",
     [
-        (string_of("A<B"), "<p>A&lt;B</p>"),
-        (string_of("A>B"), "<p>A&gt;B</p>"),
-        (string_of("A&B"), "<p>A&amp;B</p>"),
-        (string_of('A"B'), "<p>A&quot;B</p>"),
-        (string_of("A'B"), "<p>A&#x27;B</p>"),
-        (Emphasis(Text("A<B")), "<em>A&lt;B</em>"),
+        (String([Code("Code")]), "<p><code>Code</code></p>"),
+        (
+            String([Text("Normal"), Code("Code"), Text("Normal")]),
+            "<p>Normal<code>Code</code>Normal</p>",
+        ),
+        (
+            String([Code("Code\nCode")]),
+            "<p><code><pre>Code\nCode</pre></code></p>",
+        ),
+        (
+            String([Code("\nCode\n")]),
+            "<p><code><pre>Code</pre></code></p>",
+        ),
+        (
+            String([Code("\n\nCode\n\n")]),
+            "<p><code><pre>\nCode\n</pre></code></p>",
+        ),
+        (
+            String([Code("\tCode\n\t\tCode")]),
+            "<p><code><pre>Code\n\tCode</pre></code></p>",
+        ),
+        (String([Code("A<B")]), "<p><code>A&lt;B</code></p>"),
+        (String([Code("A&B")]), "<p><code>A&amp;B</code></p>"),
     ],
 )
-def test_html_escaping(input, expected):
+def test_code(input, expected):
+    assert_render(input, expected)
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            Grouping([String([Text("A")]), String([Text("B")])]),
+            "<p>A</p><p>B</p>",
+        ),
+        (Grouping([]), ""),
+    ],
+)
+def test_grouping(input, expected):
+    assert_render(input, expected)
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            Section(String([Text("Title")]), String([Text("Text")]), 1),
+            "<h1>Title</h1><p>Text</p>",
+        ),
+        (
+            Section(String([Text("Title")]), String([Text("Text")]), 2),
+            "<h2>Title</h2><p>Text</p>",
+        ),
+    ],
+)
+def test_section(input, expected):
+    assert_render(input, expected)
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            List(Grouping([String([Text("A")]), String([Text("B")])])),
+            "<ul><li><p>A</p></li><li><p>B</p></li></ul>",
+        ),
+        (
+            List(Grouping([])),
+            "<ul></ul>",
+        ),
+    ],
+)
+def test_list(input, expected):
+    assert_render(input, expected)
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            List(Grouping([Section(String([Text("Title")]), Grouping([]), 2)])),
+            "<ul><li><h2>Title</h2></li></ul>",
+        ),
+        (
+            Section(String([Text("Title")]), List(Grouping([])), 1),
+            "<h1>Title</h1><ul></ul>",
+        ),
+    ],
+)
+def test_nested(input, expected):
     assert_render(input, expected)
