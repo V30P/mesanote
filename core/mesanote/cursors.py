@@ -1,7 +1,7 @@
 from typing import Sequence, Iterable, cast
 
 
-class CursorError(Exception):
+class CursorDepletedError(Exception):
     pass
 
 
@@ -15,7 +15,7 @@ class Cursor[T]:
 
     def peek(self) -> T:
         if self.is_at_end():
-            raise CursorError("Cannot peek past the end of the sequence.")
+            raise CursorDepletedError("Cannot peek past the end of the sequence.")
 
         return self.sequence[self.pos]
 
@@ -32,22 +32,36 @@ class Cursor[T]:
 
     def match(self, element: T) -> bool:
         if self.check(element):
-            self.pos += 1
+            self.advance()
             return True
 
         return False
 
+    def previous(self) -> T:
+        if self.pos != 0:
+            return self.sequence[self.pos - 1]
+
+    def check_type(self, type: type) -> bool:
+        return isinstance(self.peek(), type)
+
+    def match_type(self, type: type) -> bool:
+        matched = self.check_type(type)
+        if matched:
+            self.advance()
+        return matched
+
     def peek_many(self, n: int) -> Sequence[T]:
         if self.pos + n > len(self.sequence):
-            raise CursorError("Cannot peek past the end of the sequence.")
+            raise CursorDepletedError("Cannot peek past the end of the sequence.")
         return self.sequence[self.pos : self.pos + n]
 
     def advance_many(self, n: int) -> Sequence[T]:
         if self.pos + n > len(self.sequence):
-            raise CursorError("Cannot advance past the end of the sequence.")
+            raise CursorDepletedError("Cannot advance past the end of the sequence.")
 
         elements = self.sequence[self.pos : self.pos + n]
-        self.pos += n
+        for _ in range(n):
+            self.advance()
         return elements
 
     def check_many(self, sequence: Sequence[T]) -> bool:
@@ -59,7 +73,8 @@ class Cursor[T]:
 
     def match_many(self, sequence: Sequence[T]) -> bool:
         if self.check_many(sequence):
-            self.pos += len(sequence)
+            for _ in range(len(sequence)):
+                self.advance()
             return True
 
         return False
@@ -89,3 +104,22 @@ class Cursor[T]:
                     return True
 
         return False
+
+
+class StrCursor(Cursor[str]):
+    char_pos = property(lambda self: (self.line_number, self.char_number))
+
+    def __init__(self, sequence):
+        super().__init__(sequence)
+
+        self.line_number = self.char_number = 1
+
+    def advance(self) -> str:
+        char = super().advance()
+        if char == "\n":
+            self.char_number = 1
+            self.line_number += 1
+        else:
+            self.char_number += 1
+
+        return char

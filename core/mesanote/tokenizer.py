@@ -1,6 +1,6 @@
 from typing import List
 
-from mesanote.cursor import Cursor
+from mesanote.cursors import StrCursor, CursorDepletedError
 from mesanote.tokens import (
     Token,
     StringStartToken,
@@ -35,12 +35,13 @@ class TokenizationError(Exception):
     pass
 
 
-# TODO: Add catching and formatting other errors as TokenizationErrors
 def tokenize(text: str) -> List[Token]:
-    cursor = Cursor(text)
+    cursor = StrCursor(text)
     tokens: List[Token] = []
 
     while not cursor.is_at_end():
+        source_pos = cursor.char_pos
+
         # Skip spaces
         if cursor.peek().isspace():
             cursor.advance()
@@ -50,14 +51,14 @@ def tokenize(text: str) -> List[Token]:
                 cursor.advance()
         # Grouping
         elif cursor.match_many(GROUPING[0]):
-            tokens.append(GroupStartToken())
+            tokens.append(GroupStartToken(source=source_pos))
         elif cursor.match_many(GROUPING[1]):
-            tokens.append(GroupEndToken())
+            tokens.append(GroupEndToken(source=source_pos))
         # Structure
         elif cursor.match_many(SECTION):
-            tokens.append(SectionStartToken())
+            tokens.append(SectionStartToken(source=source_pos))
         elif cursor.match_many(LIST):
-            tokens.append(ListStartToken())
+            tokens.append(ListStartToken(source=source_pos))
         # Strings
         else:
             tokens += tokenize_string(cursor)
@@ -65,57 +66,67 @@ def tokenize(text: str) -> List[Token]:
     return tokens
 
 
-def tokenize_string(cursor: Cursor[str]) -> List[Token]:
-    tokens: List[Token] = [StringStartToken()]
-    text = ""
+def tokenize_string(cursor: StrCursor) -> List[Token]:
+    tokens: List[Token] = [StringStartToken(source=cursor.char_pos)]
+    current_text: TextToken | None = None
 
     while not cursor.is_at_end():
+        source_pos = cursor.char_pos
+
         # Terminators
         if cursor.match_any_of(STRING_TERMINATORS) or cursor.check_any_of(BASE_SYMBOLS):
             break
         # Escape
         elif cursor.match_many(ESCAPE):
-            text += get_escaped_text(cursor)
+            if not current_text:
+                current_text = TextToken("", source=source_pos)
+            current_text.value += get_escaped_text(cursor, source_pos)
         # Emphasis
         elif cursor.match_many(EMPHASIS):
-            if text:
-                tokens.append(TextToken(text))
-                text = ""
-            tokens.append(EmphasisToken())
+            if current_text:
+                tokens.append(current_text)
+                current_text = None
+            tokens.append(EmphasisToken(source=source_pos))
         # Codeblocks
         elif cursor.match_many(CODE):
-            if text:
-                tokens.append(TextToken(text))
-                text = ""
+            if current_text:
+                tokens.append(current_text)
+                current_text = None
             tokens += tokenize_code(cursor)
         # Text
         else:
-            text += cursor.advance()
+            if not current_text:
+                current_text = TextToken(source=source_pos)
+            current_text.value += cursor.advance()
 
-    if text:
-        tokens.append(TextToken(text.rstrip()))
-    tokens.append(StringEndToken())
+    if current_text:
+        tokens.append(current_text)
+    tokens.append(StringEndToken(source=source_pos))
     return tokens
 
 
-def get_escaped_text(cursor: Cursor[str]) -> str:
-    if cursor.is_at_end():
-        raise TokenizationError("Must provide a character to escape.")
+def get_escaped_text(cursor: StrCursor, source: tuple[int, int]) -> str:
+    if not cursor.is_at_end():
+        for escapable in ESCAPABLES:
+            if cursor.check_many(escapable):
+                return cursor.advance_many(len(escapable))
 
-    for escapable in ESCAPABLES:
-        if cursor.check_many(escapable):
-            return cursor.advance_many(len(escapable))
-
-    raise TokenizationError("Escape is not followed by an escapable sequence.")
+    raise TokenizationError(
+        f"Escape at {source} was not followed by an escapable sequence."
+    )
 
 
-def tokenize_code(cursor: Cursor[str]) -> List[Token]:
+def tokenize_code(cursor: StrCursor) -> List[Token]:
+    source_pos = cursor.char_pos
     code_symbol_count = 1
     while cursor.match_many(CODE):
         code_symbol_count += 1
 
     text = ""
     while not cursor.match_many(CODE * code_symbol_count):
-        text += cursor.advance()
+        try:
+            text += cursor.advance()
+        except CursorDepletedError:
+            raise TokenizationError(f"Codeblock at {source_pos} was not closed.")
 
-    return [CodeToken(text)]
+    return [CodeToken(text, source=source_pos)]

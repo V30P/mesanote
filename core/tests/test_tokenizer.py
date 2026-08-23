@@ -1,6 +1,5 @@
 import pytest
 
-from mesanote.cursor import CursorError
 from mesanote.tokenizer import tokenize, TokenizationError
 from mesanote.tokens import (
     StringStartToken,
@@ -127,7 +126,7 @@ def test_codeblock(input, expected):
 
 @pytest.mark.parametrize("input", ["``", "` ``", "`` `"])
 def test_mismatched_codeblock(input):
-    with pytest.raises(CursorError):
+    with pytest.raises(TokenizationError):
         tokenize(input)
 
 
@@ -152,7 +151,7 @@ def test_structure_symbols(input, expected):
     "input, expected",
     [
         (
-            "> Title { Text }",
+            ">Title{Text}",
             [
                 SectionStartToken(),
                 StringStartToken(),
@@ -166,7 +165,7 @@ def test_structure_symbols(input, expected):
             ],
         ),
         (
-            "+ Title { A | B }",
+            "+Title{A|B}",
             [
                 ListStartToken(),
                 StringStartToken(),
@@ -192,10 +191,10 @@ def test_full_structure(input, expected):
     "input, expected",
     [
         ("// Comment", []),
-        ("Text // Comment", [StringStartToken(), TextToken("Text"), StringEndToken()]),
+        ("Text// Comment", [StringStartToken(), TextToken("Text"), StringEndToken()]),
         ("// Comment | Comment", []),
         (
-            "// Comment \n Text",
+            "// Comment\nText",
             [StringStartToken(), TextToken("Text"), StringEndToken()],
         ),
     ],

@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass()
 class Token:
+    source: tuple[int, int] | None = field(default=None, kw_only=True, compare=False)
     pass
 
 
@@ -18,7 +19,7 @@ class StringEndToken(Token):
 
 @dataclass()
 class TextToken(Token):
-    value: str
+    value: str = ""
 
 
 @dataclass()

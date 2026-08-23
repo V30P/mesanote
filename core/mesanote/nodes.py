@@ -32,7 +32,7 @@ class String(Element):
     substrings: list[Substring]
 
     def render(self) -> str:
-        return f"<p>{self.render_substrings()}</p>"
+        return f"<p>{"".join(element.render() for element in self.substrings).rstrip()}</p>"
 
     def render_substrings(self) -> str:
         return "".join(element.render() for element in self.substrings)
