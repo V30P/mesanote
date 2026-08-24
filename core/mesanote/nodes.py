@@ -70,14 +70,15 @@ class StrongEmphasis(Emphasis):
 @dataclass()
 class Code(Substring):
     value: str
-
+    
     def render(self):
         value = html.escape(self.value)
         if "\n" in value:
-            value = (
-                "<pre>"
+            return (
+                # <pre> should not be used inside a paragraph
+                "</p><pre><code>"
                 + textwrap.dedent(value.removeprefix("\n").removesuffix("\n"))
-                + "</pre>"
+                + "</code></pre><p>"
             )
 
         return "<code>" + value + "</code>"

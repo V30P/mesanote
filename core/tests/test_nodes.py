@@ -77,19 +77,23 @@ def test_emphasis(input, expected):
         ),
         (
             String([Code("Code\nCode")]),
-            "<p><code><pre>Code\nCode</pre></code></p>",
+            "<p></p><pre><code>Code\nCode</code></pre><p></p>",
         ),
         (
             String([Code("\nCode\n")]),
-            "<p><code><pre>Code</pre></code></p>",
+            "<p></p><pre><code>Code</code></pre><p></p>",
         ),
         (
             String([Code("\n\nCode\n\n")]),
-            "<p><code><pre>\nCode\n</pre></code></p>",
+            "<p></p><pre><code>\nCode\n</code></pre><p></p>",
         ),
         (
             String([Code("\tCode\n\t\tCode")]),
-            "<p><code><pre>Code\n\tCode</pre></code></p>",
+            "<p></p><pre><code>Code\n\tCode</code></pre><p></p>",
+        ),
+        (   
+            String([Text("Normal"), Code("\nCode\n"), Text("Normal")]),
+            "<p>Normal</p><pre><code>Code</code></pre><p>Normal</p>"
         ),
         (String([Code("A<B")]), "<p><code>A&lt;B</code></p>"),
         (String([Code("A&B")]), "<p><code>A&amp;B</code></p>"),

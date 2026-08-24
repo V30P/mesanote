@@ -118,6 +118,16 @@ def test_emphasis(input, expected):
                 StringEndToken(),
             ],
         ),
+        (
+            "Text`\nCode\n`Text",
+            [
+                StringStartToken(),
+                TextToken("Text"),
+                CodeToken("\nCode\n"),
+                TextToken("Text"),
+                StringEndToken(),
+            ],
+        ),
     ],
 )
 def test_codeblock(input, expected):
