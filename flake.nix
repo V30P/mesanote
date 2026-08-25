@@ -69,15 +69,30 @@
           buildUtils = pkgs.callPackages pyproject-nix.build.util { };
         in
         {
-          # Package
-          packages.default =
-            let
-              buildUtils = pkgs.callPackages pyproject-nix.build.util { };
-            in
-            buildUtils.mkApplication {
-              venv = pythonPackages.mkVirtualEnv "mesanote" workspace.deps.default;
-              package = pythonPackages.mesanote;
-            };
+          # Packages
+          packages = {
+            default =
+              let
+                buildUtils = pkgs.callPackages pyproject-nix.build.util { };
+              in
+              buildUtils.mkApplication {
+                venv = pythonPackages.mkVirtualEnv "mesanote" workspace.deps.default;
+                package = pythonPackages.mesanote;
+              };
+
+            extension =
+              let
+                extensionManifest = pkgs.lib.importJSON ./extension/package.json;
+              in
+              pkgs.vscode-utils.buildVscodeExtension {
+                  pname = extensionManifest.name;
+                  src = ./extension;
+                  vscodeExtUniqueId = "${extensionManifest.publisher}.${extensionManifest.name}";
+                  vscodeExtPublisher = extensionManifest.publisher;
+                  vscodeExtName = extensionManifest.name;
+                  version = extensionManifest.version;
+              };
+          };
 
           # Dev shell
           devShells.default =
