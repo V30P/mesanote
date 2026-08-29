@@ -32,10 +32,10 @@ class String(Element):
     substrings: list[Substring]
 
     def render(self) -> str:
-        return f"<p>{"".join(element.render() for element in self.substrings).rstrip()}</p>"
+        return f"<p>{self.render_substrings()}</p>"
 
     def render_substrings(self) -> str:
-        return "".join(element.render() for element in self.substrings)
+        return "".join(element.render() for element in self.substrings).rstrip()
 
 
 @dataclass()
@@ -70,7 +70,7 @@ class StrongEmphasis(Emphasis):
 @dataclass()
 class Code(Substring):
     value: str
-    
+
     def render(self):
         value = html.escape(self.value)
         if "\n" in value:
@@ -112,3 +112,11 @@ class List(Structure):
 
     def render(self) -> str:
         return f"<ul>{''.join(f'<li>{element.render()}</li>' for element in self.grouping.elements)}</ul>"
+
+
+@dataclass()
+class Definitions(Structure):
+    values: List[tuple[String, String]]
+
+    def render(self) -> str:
+        return f"<dl>{''.join(f'<dt>{term[0].render_substrings()}</dt><dd>{term[1].render_substrings()}</dd>' for term in self.values)}</dl>"

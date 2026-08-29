@@ -1,6 +1,6 @@
 # MesaNote Syntax Guide
 
-This file serves as a reference for MesaNote syntax. If you want to use MesaNote but have not set it up yet, see the README’s [Getting Started](README.md#getting-started) section.
+This file serves as a reference for MesaNote syntax. If you want to use MesaNote but still need to set it up, see the README’s [Getting Started](README.md#getting-started) section.
 
 MesaNote documents are composed of three primary elements: strings, groupings, and structures. This guide describes each of them and how they are used.
 
@@ -14,6 +14,7 @@ MesaNote documents are composed of three primary elements: strings, groupings, a
 3. [Structures](#structures)
     - [Sections](#sections)
     - [Lists](#lists)
+    - [Definitions](#definitions)
     - [Tables](#tables)
 4. [Comments](#comments)
 
@@ -73,7 +74,7 @@ Special syntax characters can be escaped using a backslash:
 
 ## Groupings
 
-Groupings allow multiple elements to be treated as a single unit. On their own, groupings are not very useful, but they are key for working with structures.
+A grouping allows multiple elements to be treated as a single unit. On their own, groupings are not very useful, but they are key for working with structures.
 
 ```cpp
 {
@@ -84,7 +85,7 @@ Groupings allow multiple elements to be treated as a single unit. On their own, 
 
 ## Structures
 
-Structures provide formatting outside of what is available with just plain  text. 
+Structures provide formatting outside of what is available with just plain text. 
 
 In general, structures take the form:
 
@@ -100,7 +101,7 @@ It is common practice to pass groupings to structures when the structure should 
 
 ### Sections
 
-Sections assign a title to an element. A section begins with `>` followed by a string (title) and an element (content).
+A sections assigns a title to an element. Section begin with `>` followed by a string (title) and an element (content).
 
 ```cpp
 > My Section
@@ -125,7 +126,7 @@ My subsection content
 
 ### Lists
 
-Lists create  an unordered collection of elements. A list begins with `+` followed by a grouping containing the list's elements.
+A List creates an unordered collection of elements. A list begins with `+` followed by a grouping containing the list's elements.
 
 ```cpp
 + {
@@ -134,11 +135,28 @@ Lists create  an unordered collection of elements. A list begins with `+` follow
     String C
 }
 ```
+
+## Definitions
+
+A definition assigns a meaning to a term. Each definition starts with `@` followed by two strings: one for the term and one for the definition.
+
+```cpp
+@ Term
+Definition
+```
+
+Consecutive definitions will be rendered together as one definition list.
+
+```cpp
+@ Term A | Definition A
+@ Term B | Definition B
+```
+
 ### Tables 
 
-Tables organize content into a grid. They begin with a `#` followed by a grouping where each element is one cell in the table. 
+A Table organizes content into a grid. Tables begin with `#` followed by a grouping where each element is one cell in the table. 
 
-Tables given can be one-dimensional.
+Tables can be one-dimensional.
 
 ```cpp
 # {
@@ -156,7 +174,6 @@ They can also be two-dimensional.
     { A2 | B2 | C2 }
 }
 ```
-
 
 ## Comments
 

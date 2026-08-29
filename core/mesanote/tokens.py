@@ -56,3 +56,7 @@ class SectionStartToken(StructureStartToken):
 @dataclass()
 class ListStartToken(StructureStartToken):
     pass
+
+@dataclass()
+class DefinitionStartToken(StructureStartToken):
+    pass

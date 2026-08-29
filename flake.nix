@@ -107,12 +107,14 @@
               packages = [
                 (editablePythonPackages.mkVirtualEnv "mesanote-dev" workspace.deps.all)
                 pkgs.uv
+                pkgs.bashInteractive
               ];
 
               env = {
                 UV_NO_SYNC = "1";
                 UV_PYTHON = editablePythonPackages.python.interpreter;
                 UV_PYTHON_DOWNLOADS = "never";
+                SHELL = "${pkgs.bashInteractive}/bin/bash";
               };
 
               shellHook = ''

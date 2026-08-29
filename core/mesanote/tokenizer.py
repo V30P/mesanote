@@ -2,6 +2,7 @@ from typing import List
 
 from mesanote.cursors import StrCursor, CursorDepletedError
 from mesanote.tokens import (
+    DefinitionStartToken,
     Token,
     StringStartToken,
     StringEndToken,
@@ -18,17 +19,18 @@ COMMENT = "//"
 GROUPING = ("{", "}")
 SECTION = ">"
 LIST = "+"
+DEFINITION = "@"
 
-BASE_SYMBOLS = [*GROUPING, COMMENT, SECTION, LIST]
+SYMBOLS = [*GROUPING, COMMENT, SECTION, LIST, DEFINITION]
 
 EMPHASIS = "*"
 ESCAPE = "\\"
 CODE = "`"
 
 STRING_SYMBOLS = [EMPHASIS, ESCAPE, CODE]
-
 STRING_TERMINATORS = ["\n", "|"]
-ESCAPABLES = [*BASE_SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]
+
+ESCAPABLES = [*SYMBOLS, *STRING_SYMBOLS, *STRING_TERMINATORS]
 
 
 class TokenizationError(Exception):
@@ -49,16 +51,18 @@ def tokenize(text: str) -> List[Token]:
         elif cursor.match_many(COMMENT):
             while not cursor.is_at_end() and cursor.peek() != "\n":
                 cursor.advance()
-        # Grouping
+        # Groupings
         elif cursor.match_many(GROUPING[0]):
             tokens.append(GroupStartToken(source=source_pos))
         elif cursor.match_many(GROUPING[1]):
             tokens.append(GroupEndToken(source=source_pos))
-        # Structure
+        # Structures
         elif cursor.match_many(SECTION):
             tokens.append(SectionStartToken(source=source_pos))
         elif cursor.match_many(LIST):
             tokens.append(ListStartToken(source=source_pos))
+        elif cursor.match_many(DEFINITION):
+            tokens.append(DefinitionStartToken(source=source_pos))
         # Strings
         else:
             tokens += tokenize_string(cursor)
@@ -74,9 +78,9 @@ def tokenize_string(cursor: StrCursor) -> List[Token]:
         source_pos = cursor.char_pos
 
         # Terminators
-        if cursor.match_any_of(STRING_TERMINATORS) or cursor.check_any_of(BASE_SYMBOLS):
+        if cursor.match_any_of(STRING_TERMINATORS) or cursor.check_any_of(SYMBOLS):
             break
-        # Escape
+        # Escapes
         elif cursor.match_many(ESCAPE):
             if not current_text:
                 current_text = TextToken("", source=source_pos)

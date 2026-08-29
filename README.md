@@ -14,7 +14,7 @@ This repository contains the following projects:
    - Low-dependency, pure Python implementation
    - Custom tokenizer, recursive descent parser, and AST
    - Easy-to-use CLI
-   - Core test suite
+   - Comprehensive test suite
 
 2. [VS Code extension](extension)
    - Automatic language detection
@@ -91,9 +91,10 @@ strong_emphasis = "**" , (TEXT | emphasis) , "**" ;
 code_block = { "`" }- TEXT { "`" }- ;
 
 (* Structures *)
-structure = section | list | table ;
+structure = section | list | definitions | table ;
 section = ">" , string , element ;
 list = "+" , grouping ;
+definitions = { "@", string , string }- ;
 table = "#" , grouping;
 ```
 

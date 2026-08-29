@@ -2,6 +2,7 @@ from typing import Callable, List as PyList, TypeVar, cast
 
 from mesanote.cursors import Cursor, CursorDepletedError
 from mesanote.tokens import (
+    DefinitionStartToken,
     Token,
     StringStartToken,
     StringEndToken,
@@ -27,6 +28,7 @@ from mesanote.nodes import (
     Structure,
     Section,
     List,
+    Definitions,
 )
 
 
@@ -167,6 +169,8 @@ def parse_structure(cursor: Cursor, depth: int) -> Structure:
         return parse_section(cursor, depth)
     elif cursor.check_type(ListStartToken):
         return parse_list(cursor, depth)
+    elif cursor.check_type(DefinitionStartToken):
+        return parse_definitions(cursor)
 
     token = cursor.peek()
     raise ParseError(
@@ -197,6 +201,26 @@ def parse_list(cursor: Cursor, depth: int) -> List:
     )
 
     return List(grouping)
+
+
+def parse_definitions(cursor) -> Definitions:
+    terms = []
+    while True:
+        match_type_or_raise(cursor, DefinitionStartToken)
+        source = cursor.previous().source
+
+        term = with_context(
+            lambda: parse_string(cursor), f"in term for definition at {source}."
+        )
+        definition = with_context(
+            lambda: parse_string(cursor), f"in value for definition at {source}."
+        )
+        terms.append((term, definition))
+
+        if cursor.is_at_end() or not cursor.check_type(DefinitionStartToken):
+            break
+
+    return Definitions(terms)
 
 
 def with_context[T](func: Callable[[], T], context: str) -> T:
