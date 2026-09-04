@@ -60,3 +60,7 @@ class ListStartToken(StructureStartToken):
 @dataclass()
 class DefinitionStartToken(StructureStartToken):
     pass
+
+@dataclass()
+class TableStartToken(StructureStartToken):
+    pass

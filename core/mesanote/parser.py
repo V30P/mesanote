@@ -2,7 +2,6 @@ from typing import Callable, List as PyList, TypeVar, cast
 
 from mesanote.cursors import Cursor, CursorDepletedError
 from mesanote.tokens import (
-    DefinitionStartToken,
     Token,
     StringStartToken,
     StringEndToken,
@@ -14,6 +13,8 @@ from mesanote.tokens import (
     StructureStartToken,
     SectionStartToken,
     ListStartToken,
+    DefinitionStartToken,
+    TableStartToken,
 )
 from mesanote.nodes import (
     Document,
@@ -29,6 +30,7 @@ from mesanote.nodes import (
     Section,
     List,
     Definitions,
+    Table,
 )
 
 
@@ -162,6 +164,7 @@ def parse_code(cursor: Cursor) -> Code:
     return Code(cast(CodeToken, cursor.advance()).value)
 
 
+# TODO: Figure out a better way to handle depth
 def parse_structure(cursor: Cursor, depth: int) -> Structure:
     depth += 1
 
@@ -171,6 +174,8 @@ def parse_structure(cursor: Cursor, depth: int) -> Structure:
         return parse_list(cursor, depth)
     elif cursor.check_type(DefinitionStartToken):
         return parse_definitions(cursor)
+    elif cursor.check_type(TableStartToken):
+        return parse_table(cursor, depth)
 
     token = cursor.peek()
     raise ParseError(
@@ -203,7 +208,7 @@ def parse_list(cursor: Cursor, depth: int) -> List:
     return List(grouping)
 
 
-def parse_definitions(cursor) -> Definitions:
+def parse_definitions(cursor: Cursor) -> Definitions:
     terms = []
     while True:
         match_type_or_raise(cursor, DefinitionStartToken)
@@ -221,6 +226,29 @@ def parse_definitions(cursor) -> Definitions:
             break
 
     return Definitions(terms)
+
+
+def parse_table(cursor: Cursor, depth) -> Table:
+    match_type_or_raise(cursor, TableStartToken)
+    source = cursor.previous().source
+
+    rows_group = with_context(
+        lambda: parse_grouping(cursor, depth), f"in content for table at {source}."
+    )
+
+    # Break grouping down into rows of elements
+    rows = []
+    for row_element in rows_group.elements:
+        row = []
+        if isinstance(row_element, Grouping):
+            for element in row_element.elements:
+                row.append(element)
+        else:
+            row.append(row_element)
+        rows.append(row)
+    
+        
+    return Table(rows)
 
 
 def with_context[T](func: Callable[[], T], context: str) -> T:

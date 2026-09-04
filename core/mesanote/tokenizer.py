@@ -2,7 +2,6 @@ from typing import List
 
 from mesanote.cursors import StrCursor, CursorDepletedError
 from mesanote.tokens import (
-    DefinitionStartToken,
     Token,
     StringStartToken,
     StringEndToken,
@@ -13,6 +12,8 @@ from mesanote.tokens import (
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
+    DefinitionStartToken,
+    TableStartToken
 )
 
 COMMENT = "//"
@@ -20,8 +21,9 @@ GROUPING = ("{", "}")
 SECTION = ">"
 LIST = "+"
 DEFINITION = "@"
+TABLE = "#"
 
-SYMBOLS = [*GROUPING, COMMENT, SECTION, LIST, DEFINITION]
+SYMBOLS = [*GROUPING, COMMENT, SECTION, LIST, DEFINITION, TABLE]
 
 EMPHASIS = "*"
 ESCAPE = "\\"
@@ -63,6 +65,8 @@ def tokenize(text: str) -> List[Token]:
             tokens.append(ListStartToken(source=source_pos))
         elif cursor.match_many(DEFINITION):
             tokens.append(DefinitionStartToken(source=source_pos))
+        elif cursor.match_many(TABLE):
+            tokens.append(TableStartToken(source=source_pos))
         # Strings
         else:
             tokens += tokenize_string(cursor)

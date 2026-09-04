@@ -116,7 +116,23 @@ class List(Structure):
 
 @dataclass()
 class Definitions(Structure):
-    values: List[tuple[String, String]]
+    terms: List[tuple[String, String]]
 
     def render(self) -> str:
-        return f"<dl>{''.join(f'<dt>{term[0].render_substrings()}</dt><dd>{term[1].render_substrings()}</dd>' for term in self.values)}</dl>"
+        return f"<dl>{''.join(f'<dt>{term[0].render_substrings()}</dt><dd>{term[1].render_substrings()}</dd>' for term in self.terms)}</dl>"
+
+
+@dataclass()
+class Table(Structure):
+    rows: List[List[Element]]
+
+    def render(self) -> str:
+        output = "<table>"
+        for row in self.rows:
+            output += "<tr>"
+            for element in row:
+                output += f"<td>{element.render()}</td>"
+            output += "</tr>"
+        output += "</table>"
+
+        return output
