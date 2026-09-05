@@ -104,13 +104,13 @@ For a more practical look at MesaNote's sytnax, see the [syntax guide](SYNTAX.md
 
 ## Getting Started
 
-To get started with MesaNote, clone the repository and run the setup script:
+MesaNote is packaged through the [Nix](https://github.com/nixos/nix) package manager. To install, run:
 
 ```bash
-./setup.sh
+nix profile install github:V30P/mesanote
 ```
 
-This installs the core Python package, including the `mesa` CLI:
+This installs the core Python package, including the `mesa` CLI.
 
 ```bash
 # Learn about the CLI
@@ -120,9 +120,9 @@ mesa --help
 mesa COMMAND
 ```
 
-For functionality like syntax highlighting and preview support, the script also generates a VS Code extension package at `artifacts/mesanote.vsix`. Install it via “Install from VSIX” in VS Code.
+Additionally, the MesaNote VSCode extension is available at `github:V30P/mesanote#extension` and can be built via `nix build`.
 
-Additionally, MesaNote includes a `flake.nix` file which allows MesaNote to be used as a package or home-manager module via the Nix package manager.
+For a cleaner installation experience, MesaNote provides a module for Nix's [Home Manager](https://github.com/nix-community/home-manager) system. It is also possible to automatically install the VSCode extension by including it in your `Programs.VSCode` config in Home Manager.
 
 ## License
 
