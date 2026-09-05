@@ -11,7 +11,7 @@
   "categories": [
     "Programming Languages"
   ],
-  "main": "./extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "languages": [
       {
@@ -61,13 +61,13 @@
     "url": "https://github.com/V30P/mesanote"
   },
   "scripts": {
-    "lint": "eslint .",
-    "package": "vsce package"
+    "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
+    "@types/node": "^20.19.43",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.24.0",
     "eslint": "^8.57.0",
-    "@vscode/vsce": "^2.24.0"
+    "typescript": "^5.4.0"
   }
 }

@@ -83,14 +83,54 @@
             extension =
               let
                 extensionManifest = pkgs.lib.importJSON ./extension/package.json;
+
+                # Derivation for the node modules
+                extensionNodeModules = pkgs.buildNpmPackage {
+                  pname = "${extensionManifest.name}-node-modules";
+                  version = extensionManifest.version;
+                  src = ./extension;
+                  npmDepsHash = "sha256-XU+wiuHy77rsie54tFI/bpk2HS1kJj69RIIxO4nCtLA";
+                  dontNpmBuild = true;
+                  npmFlags = [ "--ignore-scripts" ];
+                  installPhase = ''
+                    mkdir -p $out
+                    cp -r node_modules $out/node_modules
+                  '';
+                };
+
+                # Derivation for compiling the extension source
+                builtExtension = pkgs.stdenv.mkDerivation {
+                  name = "extension";
+                  pname = extensionManifest.name;
+                  version = extensionManifest.version;
+                  src = ./extension;
+
+                  nativeBuildInputs = [ pkgs.nodejs_22 ];
+
+                  buildPhase = ''
+                    runHook preBuild
+                    cp -r ${extensionNodeModules}/node_modules .
+                    chmod -R u+w node_modules
+                    npx tsc -p .
+                    runHook postBuild
+                  '';
+
+                  installPhase = ''
+                    runHook preInstall
+                    mkdir -p $out
+                    cp -r . $out
+                    rm -rf $out/node_modules
+                    runHook postInstall
+                  '';
+                };
               in
               pkgs.vscode-utils.buildVscodeExtension {
-                  pname = extensionManifest.name;
-                  src = ./extension;
-                  vscodeExtUniqueId = "${extensionManifest.publisher}.${extensionManifest.name}";
-                  vscodeExtPublisher = extensionManifest.publisher;
-                  vscodeExtName = extensionManifest.name;
-                  version = extensionManifest.version;
+                pname = extensionManifest.name;
+                src = builtExtension;
+                vscodeExtUniqueId = "${extensionManifest.publisher}.${extensionManifest.name}";
+                vscodeExtPublisher = extensionManifest.publisher;
+                vscodeExtName = extensionManifest.name;
+                version = extensionManifest.version;
               };
           };
 
@@ -107,6 +147,7 @@
               packages = with pkgs; [
                 (editablePythonPackages.mkVirtualEnv "mesanote-dev" workspace.deps.all)
                 uv
+                nodejs_22
               ];
 
               env = {

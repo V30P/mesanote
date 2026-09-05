@@ -15,14 +15,15 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}/extension",
                 "${workspaceFolder}/extension/test_workspace"
-            ]
+            ],
+            "preLaunchTask": "npm: watch"
         }
     ],
     "inputs": [
         {
             "id": "promptSubcommand",
             "description": "Enter subcommand",
-            "type": "promptString",
+            "type": "promptString"
         }
     ]
 }
