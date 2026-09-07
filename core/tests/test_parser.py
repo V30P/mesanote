@@ -12,6 +12,7 @@ from mesanote.tokens import (
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
+    DefinitionStartToken,
 )
 from mesanote.nodes import (
     String,
@@ -22,6 +23,7 @@ from mesanote.nodes import (
     Grouping,
     Section,
     List,
+    Definitions,
 )
 
 
@@ -308,3 +310,66 @@ def test_list(input, expected):
 def test_no_grouping_list():
     with pytest.raises(ParseError):
         parse([ListStartToken(), TextToken("Title")])
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            [
+                DefinitionStartToken(),
+                StringStartToken(),
+                TextToken("Term"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("Definition"),
+                StringEndToken(),
+            ],
+            [Definitions([(String([Text("Term")]), String([Text("Definition")]))])],
+        ),
+        (
+            [
+                DefinitionStartToken(),
+                StringStartToken(),
+                TextToken("A"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("1"),
+                StringEndToken(),
+                DefinitionStartToken(),
+                StringStartToken(),
+                TextToken("B"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("2"),
+                StringEndToken(),
+                DefinitionStartToken(),
+                StringStartToken(),
+                TextToken("C"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("3"),
+                StringEndToken(),
+            ],
+            [
+                Definitions(
+                    [
+                        (String([Text("A")]), String([Text("1")])),
+                        (String([Text("B")]), String([Text("2")])),
+                        (String([Text("C")]), String([Text("3")])),
+                    ]
+                )
+            ],
+        ),
+    ],
+)
+def test_definitions(input, expected):
+    assert_parse(input, expected)
+
+def test_no_term_definitions():
+    with pytest.raises(ParseError):
+        parse([DefinitionStartToken()])
+
+def test_no_definition_definitions():
+    with pytest.raises(ParseError):
+        parse([DefinitionStartToken(), StringStartToken(), TextToken("Term"), StringEndToken()])

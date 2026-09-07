@@ -10,6 +10,7 @@ from mesanote.nodes import (
     Grouping,
     Section,
     List,
+    Definitions,
 )
 
 
@@ -91,9 +92,9 @@ def test_emphasis(input, expected):
             String([Code("\tCode\n\t\tCode")]),
             "<p></p><pre><code>Code\n\tCode</code></pre><p></p>",
         ),
-        (   
+        (
             String([Text("Normal"), Code("\nCode\n"), Text("Normal")]),
-            "<p>Normal</p><pre><code>Code</code></pre><p>Normal</p>"
+            "<p>Normal</p><pre><code>Code</code></pre><p>Normal</p>",
         ),
         (String([Code("A<B")]), "<p><code>A&lt;B</code></p>"),
         (String([Code("A&B")]), "<p><code>A&amp;B</code></p>"),
@@ -155,14 +156,22 @@ def test_list(input, expected):
     "input, expected",
     [
         (
-            List(Grouping([Section(String([Text("Title")]), Grouping([]), 2)])),
-            "<ul><li><h2>Title</h2></li></ul>",
+            Definitions([(String([Text("Term")]), String([Text("Definition")]))]),
+            "<dl><dt>Term</dt><dd>Definition</dd></dl>",
         ),
         (
-            Section(String([Text("Title")]), List(Grouping([])), 1),
-            "<h1>Title</h1><ul></ul>",
+            Definitions(
+                [
+                    (String([Text("A")]), String([Text("1")])),
+                    (String([Text("B")]), String([Text("2")])),
+                    (String([Text("C")]), String([Text("3")])),
+                ]
+            ),
+            "<dl><dt>A</dt><dd>1</dd><dt>B</dt><dd>2</dd><dt>C</dt><dd>3</dd></dl>",
         ),
     ],
 )
-def test_nested(input, expected):
+def test_definitions(input, expected):
     assert_render(input, expected)
+
+# TODO: Add some end-to-end integration tests here

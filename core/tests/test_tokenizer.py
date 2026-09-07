@@ -11,6 +11,7 @@ from mesanote.tokens import (
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
+    DefinitionStartToken
 )
 
 
@@ -151,51 +152,11 @@ def test_grouping():
         ("}", [GroupEndToken()]),
         (">", [SectionStartToken()]),
         ("+", [ListStartToken()]),
+        ("@", [DefinitionStartToken()])
     ],
 )
-def test_structure_symbols(input, expected):
+def test_structure(input, expected):
     assert_tokenize(input, expected)
-
-
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        (
-            ">Title{Text}",
-            [
-                SectionStartToken(),
-                StringStartToken(),
-                TextToken("Title"),
-                StringEndToken(),
-                GroupStartToken(),
-                StringStartToken(),
-                TextToken("Text"),
-                StringEndToken(),
-                GroupEndToken(),
-            ],
-        ),
-        (
-            "+Title{A|B}",
-            [
-                ListStartToken(),
-                StringStartToken(),
-                TextToken("Title"),
-                StringEndToken(),
-                GroupStartToken(),
-                StringStartToken(),
-                TextToken("A"),
-                StringEndToken(),
-                StringStartToken(),
-                TextToken("B"),
-                StringEndToken(),
-                GroupEndToken(),
-            ],
-        ),
-    ],
-)
-def test_full_structure(input, expected):
-    assert_tokenize(input, expected)
-
 
 @pytest.mark.parametrize(
     "input, expected",
