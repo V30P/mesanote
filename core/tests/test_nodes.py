@@ -11,6 +11,7 @@ from mesanote.nodes import (
     Section,
     List,
     Definitions,
+    Table,
 )
 
 
@@ -174,4 +175,33 @@ def test_list(input, expected):
 def test_definitions(input, expected):
     assert_render(input, expected)
 
-# TODO: Add some end-to-end integration tests here
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (Table([[String([Text("A")])]]), "<table><tr><td><p>A</p></td></tr></table>"),
+        (
+            Table(
+                [
+                    [String([Text("A1")]), String([Text("B1")])],
+                    [String([Text("A2")]), String([Text("B2")])],
+                ]
+            ),
+            "<table><tr><td><p>A1</p></td><td><p>B1</p></td></tr><tr><td><p>A2</p></td><td><p>B2</p></td></tr></table>",
+        ),
+        (
+            Table(
+                [
+                    [String([Text("A1")])],
+                    [String([Text("A2")]), String([Text("B2")])],
+                ]
+            ),
+            "<table><tr><td><p>A1</p></td></tr><tr><td><p>A2</p></td><td><p>B2</p></td></tr></table>",
+        ),
+    ],
+)
+def test_table(input, expected):
+    assert_render(input, expected)
+
+
+# TODO: Add some end-to-end integration tests somewhere

@@ -11,7 +11,8 @@ from mesanote.tokens import (
     GroupEndToken,
     SectionStartToken,
     ListStartToken,
-    DefinitionStartToken
+    DefinitionStartToken,
+    TableStartToken
 )
 
 
@@ -152,7 +153,8 @@ def test_grouping():
         ("}", [GroupEndToken()]),
         (">", [SectionStartToken()]),
         ("+", [ListStartToken()]),
-        ("@", [DefinitionStartToken()])
+        ("@", [DefinitionStartToken()]),
+        ("#", [TableStartToken()])
     ],
 )
 def test_structure(input, expected):

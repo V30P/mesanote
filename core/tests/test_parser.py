@@ -13,6 +13,7 @@ from mesanote.tokens import (
     SectionStartToken,
     ListStartToken,
     DefinitionStartToken,
+    TableStartToken,
 )
 from mesanote.nodes import (
     String,
@@ -24,6 +25,7 @@ from mesanote.nodes import (
     Section,
     List,
     Definitions,
+    Table,
 )
 
 
@@ -366,10 +368,103 @@ def test_no_grouping_list():
 def test_definitions(input, expected):
     assert_parse(input, expected)
 
+
 def test_no_term_definitions():
     with pytest.raises(ParseError):
         parse([DefinitionStartToken()])
 
+
 def test_no_definition_definitions():
     with pytest.raises(ParseError):
-        parse([DefinitionStartToken(), StringStartToken(), TextToken("Term"), StringEndToken()])
+        parse(
+            [
+                DefinitionStartToken(),
+                StringStartToken(),
+                TextToken("Term"),
+                StringEndToken(),
+            ]
+        )
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        (
+            [
+                TableStartToken(),
+                GroupStartToken(),
+                StringStartToken(),
+                TextToken("A"),
+                StringEndToken(),
+                GroupEndToken(),
+            ],
+            [Table([[String([Text("A")])]])],
+        ),
+        (
+            [
+                TableStartToken(),
+                GroupStartToken(),
+                GroupStartToken(),
+                StringStartToken(),
+                TextToken("A1"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("B1"),
+                StringEndToken(),
+                GroupEndToken(),
+                GroupStartToken(),
+                StringStartToken(),
+                TextToken("A2"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("B2"),
+                StringEndToken(),
+                GroupEndToken(),
+                GroupEndToken(),
+            ],
+            [
+                Table(
+                    [
+                        [String([Text("A1")]), String([Text("B1")])],
+                        [String([Text("A2")]), String([Text("B2")])],
+                    ]
+                )
+            ],
+        ),
+        (
+            [
+                TableStartToken(),
+                GroupStartToken(),
+                GroupStartToken(),
+                StringStartToken(),
+                TextToken("A1"),
+                StringEndToken(),
+                GroupEndToken(),
+                GroupStartToken(),
+                StringStartToken(),
+                TextToken("A2"),
+                StringEndToken(),
+                StringStartToken(),
+                TextToken("B2"),
+                StringEndToken(),
+                GroupEndToken(),
+                GroupEndToken(),
+            ],
+            [
+                Table(
+                    [
+                        [String([Text("A1")])],
+                        [String([Text("A2")]), String([Text("B2")])],
+                    ]
+                )
+            ],
+        ),
+    ],
+)
+def test_table(input, expected):
+    assert_parse(input, expected)
+
+
+def test_no_rows_table():
+    with pytest.raises(ParseError):
+        parse([TableStartToken()])
