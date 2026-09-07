@@ -49,18 +49,18 @@ def parse(tokens: PyList[Token]) -> Document:
 
     content = []
     while not cursor.is_at_end():
-        content.append(parse_element(cursor))
+        content.append(_parse_element(cursor))
 
     return Document(content)
 
 
-def parse_element(cursor: Cursor, depth: int = 0) -> Element:
+def _parse_element(cursor: Cursor, depth: int = 0) -> Element:
     if cursor.check_type(StringStartToken):
-        return parse_string(cursor)
+        return _parse_string(cursor)
     elif cursor.check_type(GroupStartToken):
-        return parse_grouping(cursor, depth)
+        return _parse_grouping(cursor, depth)
     elif cursor.check_type(StructureStartToken):
-        return parse_structure(cursor, depth)
+        return _parse_structure(cursor, depth)
 
     token = cursor.peek()
     raise ParseError(
@@ -68,16 +68,16 @@ def parse_element(cursor: Cursor, depth: int = 0) -> Element:
     )
 
 
-def parse_grouping(cursor: Cursor, depth: int) -> Grouping:
-    match_type_or_raise(cursor, GroupStartToken)
+def _parse_grouping(cursor: Cursor, depth: int) -> Grouping:
+    _match_type_or_raise(cursor, GroupStartToken)
     source = cursor.previous().source
 
     elements = []
     try:
         while not cursor.match_type(GroupEndToken):
             elements.append(
-                with_context(
-                    lambda: parse_element(cursor, depth), f"in grouping at {source}."
+                _with_context(
+                    lambda: _parse_element(cursor, depth), f"in grouping at {source}."
                 )
             )
     except CursorDepletedError:
@@ -86,15 +86,15 @@ def parse_grouping(cursor: Cursor, depth: int) -> Grouping:
     return Grouping(elements)
 
 
-def parse_string(cursor: Cursor) -> String:
-    match_type_or_raise(cursor, StringStartToken)
+def _parse_string(cursor: Cursor) -> String:
+    _match_type_or_raise(cursor, StringStartToken)
     source = cursor.previous().source
 
     substrings = []
     try:
         while not cursor.match_type(StringEndToken):
             substrings.append(
-                with_context(lambda: parse_substring(cursor), f"in string at {source}.")
+                _with_context(lambda: _parse_substring(cursor), f"in string at {source}.")
             )
     except CursorDepletedError:
         raise ParseError(f"String at {source} was not closed.")
@@ -102,13 +102,13 @@ def parse_string(cursor: Cursor) -> String:
     return String(substrings)
 
 
-def parse_substring(cursor: Cursor) -> Substring:
+def _parse_substring(cursor: Cursor) -> Substring:
     if cursor.check_type(TextToken):
-        return parse_text(cursor)
+        return _parse_text(cursor)
     elif cursor.check_type(EmphasisToken):
-        return parse_emphasis(cursor)
+        return _parse_emphasis(cursor)
     elif cursor.check_type(CodeToken):
-        return parse_code(cursor)
+        return _parse_code(cursor)
 
     token = cursor.peek()
     raise ParseError(
@@ -117,39 +117,39 @@ def parse_substring(cursor: Cursor) -> Substring:
     )
 
 
-def parse_text(cursor: Cursor) -> Text:
-    check_type_or_raise(cursor, TextToken)
+def _parse_text(cursor: Cursor) -> Text:
+    _check_type_or_raise(cursor, TextToken)
     return Text(cast(TextToken, cursor.advance()).value)
 
 
-def parse_emphasis(cursor: Cursor) -> Emphasis:
+def _parse_emphasis(cursor: Cursor) -> Emphasis:
     cursor.match_type(EmphasisToken)
     source = cursor.previous().source
 
     if cursor.check_type(TextToken):
-        text = parse_text(cursor)
+        text = _parse_text(cursor)
         if not cursor.match_type(EmphasisToken):
             raise ParseError(f"Emphasis at {source} was not closed.")
         return Emphasis(text)
     elif cursor.check_type(EmphasisToken):
-        return parse_strong_emphasis(cursor)
+        return _parse_strong_emphasis(cursor)
 
     raise ParseError(
         f"Invalid token in emphasis at {source}: '{type(cursor.peek()).__name__}'."
     )
 
 
-def parse_strong_emphasis(cursor: Cursor) -> StrongEmphasis:
+def _parse_strong_emphasis(cursor: Cursor) -> StrongEmphasis:
     cursor.match_type(EmphasisToken)
     source = cursor.previous().source
 
     if cursor.check_type(TextToken):
-        text = parse_text(cursor)
+        text = _parse_text(cursor)
         if not cursor.match_many([EmphasisToken(), EmphasisToken()]):
             raise ParseError(f"Strong emphasis at {source} was not closed.")
         return StrongEmphasis(text)
     elif cursor.check_type(EmphasisToken):
-        emphasis = parse_emphasis(cursor)
+        emphasis = _parse_emphasis(cursor)
         if not cursor.match_many([EmphasisToken(), EmphasisToken()]):
             raise ParseError(f"Strong emphasis at {source} was not closed.")
         return StrongEmphasis(emphasis)
@@ -159,23 +159,23 @@ def parse_strong_emphasis(cursor: Cursor) -> StrongEmphasis:
     )
 
 
-def parse_code(cursor: Cursor) -> Code:
-    check_type_or_raise(cursor, CodeToken)
+def _parse_code(cursor: Cursor) -> Code:
+    _check_type_or_raise(cursor, CodeToken)
     return Code(cast(CodeToken, cursor.advance()).value)
 
 
 # TODO: Figure out a better way to handle depth
-def parse_structure(cursor: Cursor, depth: int) -> Structure:
+def _parse_structure(cursor: Cursor, depth: int) -> Structure:
     depth += 1
 
     if cursor.check_type(SectionStartToken):
-        return parse_section(cursor, depth)
+        return _parse_section(cursor, depth)
     elif cursor.check_type(ListStartToken):
-        return parse_list(cursor, depth)
+        return _parse_list(cursor, depth)
     elif cursor.check_type(DefinitionStartToken):
-        return parse_definitions(cursor)
+        return _parse_definitions(cursor)
     elif cursor.check_type(TableStartToken):
-        return parse_table(cursor, depth)
+        return _parse_table(cursor, depth)
 
     token = cursor.peek()
     raise ParseError(
@@ -183,42 +183,42 @@ def parse_structure(cursor: Cursor, depth: int) -> Structure:
     )
 
 
-def parse_section(cursor: Cursor, depth: int) -> Section:
-    match_type_or_raise(cursor, SectionStartToken)
+def _parse_section(cursor: Cursor, depth: int) -> Section:
+    _match_type_or_raise(cursor, SectionStartToken)
     source = cursor.previous().source
 
-    title = with_context(
-        lambda: parse_string(cursor), f"in title for section at {source}."
+    title = _with_context(
+        lambda: _parse_string(cursor), f"in title for section at {source}."
     )
-    element = with_context(
-        lambda: parse_element(cursor, depth), f"in element for section at {source}."
+    element = _with_context(
+        lambda: _parse_element(cursor, depth), f"in element for section at {source}."
     )
 
     return Section(title, element, depth)
 
 
-def parse_list(cursor: Cursor, depth: int) -> List:
-    match_type_or_raise(cursor, ListStartToken)
+def _parse_list(cursor: Cursor, depth: int) -> List:
+    _match_type_or_raise(cursor, ListStartToken)
     source = cursor.previous().source
 
-    grouping = with_context(
-        lambda: parse_grouping(cursor, depth), f"in grouping for list at {source}."
+    grouping = _with_context(
+        lambda: _parse_grouping(cursor, depth), f"in grouping for list at {source}."
     )
 
     return List(grouping)
 
 
-def parse_definitions(cursor: Cursor) -> Definitions:
+def _parse_definitions(cursor: Cursor) -> Definitions:
     terms = []
     while True:
-        match_type_or_raise(cursor, DefinitionStartToken)
+        _match_type_or_raise(cursor, DefinitionStartToken)
         source = cursor.previous().source
 
-        term = with_context(
-            lambda: parse_string(cursor), f"in term for definition at {source}."
+        term = _with_context(
+            lambda: _parse_string(cursor), f"in term for definition at {source}."
         )
-        definition = with_context(
-            lambda: parse_string(cursor), f"in value for definition at {source}."
+        definition = _with_context(
+            lambda: _parse_string(cursor), f"in value for definition at {source}."
         )
         terms.append((term, definition))
 
@@ -228,12 +228,12 @@ def parse_definitions(cursor: Cursor) -> Definitions:
     return Definitions(terms)
 
 
-def parse_table(cursor: Cursor, depth) -> Table:
-    match_type_or_raise(cursor, TableStartToken)
+def _parse_table(cursor: Cursor, depth) -> Table:
+    _match_type_or_raise(cursor, TableStartToken)
     source = cursor.previous().source
 
-    rows_group = with_context(
-        lambda: parse_grouping(cursor, depth), f"in content for table at {source}."
+    rows_group = _with_context(
+        lambda: _parse_grouping(cursor, depth), f"in content for table at {source}."
     )
 
     # Break grouping down into rows of elements
@@ -251,7 +251,7 @@ def parse_table(cursor: Cursor, depth) -> Table:
     return Table(rows)
 
 
-def with_context[T](func: Callable[[], T], context: str) -> T:
+def _with_context[T](func: Callable[[], T], context: str) -> T:
     try:
         return func()
     except CursorDepletedError:
@@ -262,15 +262,15 @@ def with_context[T](func: Callable[[], T], context: str) -> T:
         raise ContextualParseError(e, context)
 
 
-def check_type_or_raise[T: Token](cursor: Cursor, token_type: type[T]) -> None:
+def _check_type_or_raise[T: Token](cursor: Cursor, token_type: type[T]) -> None:
     if not cursor.check_type(token_type):
-        raise_expected_error(token_type, type(cursor.peek()))
+        _raise_expected_error(token_type, type(cursor.peek()))
 
 
-def match_type_or_raise[T: Token](cursor: Cursor, token_type: type[T]) -> None:
+def _match_type_or_raise[T: Token](cursor: Cursor, token_type: type[T]) -> None:
     if not cursor.match_type(token_type):
-        raise_expected_error(token_type, type(cursor.peek()))
+        _raise_expected_error(token_type, type(cursor.peek()))
 
 
-def raise_expected_error(expected: type[Token], got: type[Token]):
+def _raise_expected_error(expected: type[Token], got: type[Token]):
     raise ParseError(f"Expected '{expected.__name__}' but got '{got.__name__}'.")
