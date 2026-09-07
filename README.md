@@ -80,22 +80,22 @@ MesaNote’s grammar can be described in EBNF as:
 document = { element } ;
 element = string | grouping | structure | comment ;
 grouping = "{" , { element } , "}" ;
-comment = "//", TEXT, "\n"; 
+comment = "//" , TEXT , "\n" ; 
 
 (* Strings *)
-string = { substring } ;
-substring = TEXT | emphasis | inline_code_block;
+string = substring , { substring } , "\n" ;
+substring = TEXT | emphasis | code_block ;
 emphasis = weak_emphasis | strong_emphasis ;
 weak_emphasis = "*" , TEXT , "*" ;
 strong_emphasis = "**" , (TEXT | emphasis) , "**" ;
-code_block = { "`" }- TEXT { "`" }- ;
+code_block = "`" , { "`" } , TEXT , "`" , { "`" } ;
 
 (* Structures *)
 structure = section | list | definitions | table ;
 section = ">" , string , element ;
 list = "+" , grouping ;
-definitions = { "@", string , string }- ;
-table = "#" , grouping;
+definitions = "@" , string , string , { "@" , string , string } ;
+table = "#" , grouping ;
 ```
 
 Because this grammar is LL(1), it is a prime candidate for parsing using recursive descent, which is how MesaNote's parser is implemented.
