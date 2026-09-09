@@ -89,7 +89,7 @@
                   pname = "${extensionManifest.name}-node-modules";
                   version = extensionManifest.version;
                   src = ./extension;
-                  npmDepsHash = "sha256-XU+wiuHy77rsie54tFI/bpk2HS1kJj69RIIxO4nCtLA";
+                  npmDepsHash = "sha256-aOIupuv427rhbBKiSNx5mtdoqrqmTsx7gka0iDXH5bw";
                   dontNpmBuild = true;
                   npmFlags = [ "--ignore-scripts" ];
                   installPhase = ''
