@@ -5,12 +5,6 @@
             "noIndent": false
         }
     },
-    "brackets": [
-        [
-            "{",
-            "}"
-        ]
-    ],
     "autoClosingPairs": [
         [
             "{",
