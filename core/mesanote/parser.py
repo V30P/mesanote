@@ -54,13 +54,13 @@ def parse(tokens: PyList[Token]) -> Document:
     return Document(content)
 
 
-def _parse_element(cursor: Cursor, depth: int = 0) -> Element:
+def _parse_element(cursor: Cursor, section_depth: int = 0) -> Element:
     if cursor.check_type(StringStartToken):
         return _parse_string(cursor)
     elif cursor.check_type(GroupStartToken):
-        return _parse_grouping(cursor, depth)
+        return _parse_grouping(cursor, section_depth)
     elif cursor.check_type(StructureStartToken):
-        return _parse_structure(cursor, depth)
+        return _parse_structure(cursor, section_depth)
 
     token = cursor.peek()
     raise ParseError(
@@ -68,7 +68,7 @@ def _parse_element(cursor: Cursor, depth: int = 0) -> Element:
     )
 
 
-def _parse_grouping(cursor: Cursor, depth: int) -> Grouping:
+def _parse_grouping(cursor: Cursor, section_depth: int) -> Grouping:
     _match_type_or_raise(cursor, GroupStartToken)
     source = cursor.previous().source
 
@@ -77,7 +77,7 @@ def _parse_grouping(cursor: Cursor, depth: int) -> Grouping:
         while not cursor.match_type(GroupEndToken):
             elements.append(
                 _with_context(
-                    lambda: _parse_element(cursor, depth), f"in grouping at {source}."
+                    lambda: _parse_element(cursor, section_depth), f"in grouping at {source}."
                 )
             )
     except CursorDepletedError:
@@ -164,18 +164,17 @@ def _parse_code(cursor: Cursor) -> Code:
     return Code(cast(CodeToken, cursor.advance()).value)
 
 
-# TODO: Figure out a better way to handle depth
-def _parse_structure(cursor: Cursor, depth: int) -> Structure:
-    depth += 1
+def _parse_structure(cursor: Cursor, section_depth: int) -> Structure:
+    section_depth += 1
 
     if cursor.check_type(SectionStartToken):
-        return _parse_section(cursor, depth)
+        return _parse_section(cursor, section_depth)
     elif cursor.check_type(ListStartToken):
-        return _parse_list(cursor, depth)
+        return _parse_list(cursor, section_depth)
     elif cursor.check_type(DefinitionStartToken):
         return _parse_definitions(cursor)
     elif cursor.check_type(TableStartToken):
-        return _parse_table(cursor, depth)
+        return _parse_table(cursor, section_depth)
 
     token = cursor.peek()
     raise ParseError(
@@ -183,7 +182,7 @@ def _parse_structure(cursor: Cursor, depth: int) -> Structure:
     )
 
 
-def _parse_section(cursor: Cursor, depth: int) -> Section:
+def _parse_section(cursor: Cursor, section_depth: int) -> Section:
     _match_type_or_raise(cursor, SectionStartToken)
     source = cursor.previous().source
 
@@ -191,18 +190,18 @@ def _parse_section(cursor: Cursor, depth: int) -> Section:
         lambda: _parse_string(cursor), f"in title for section at {source}."
     )
     element = _with_context(
-        lambda: _parse_element(cursor, depth), f"in element for section at {source}."
+        lambda: _parse_element(cursor, section_depth), f"in element for section at {source}."
     )
 
-    return Section(title, element, depth)
+    return Section(title, element, section_depth)
 
 
-def _parse_list(cursor: Cursor, depth: int) -> List:
+def _parse_list(cursor: Cursor, section_depth: int) -> List:
     _match_type_or_raise(cursor, ListStartToken)
     source = cursor.previous().source
 
     grouping = _with_context(
-        lambda: _parse_grouping(cursor, depth), f"in grouping for list at {source}."
+        lambda: _parse_grouping(cursor, section_depth), f"in grouping for list at {source}."
     )
 
     return List(grouping)
@@ -228,12 +227,12 @@ def _parse_definitions(cursor: Cursor) -> Definitions:
     return Definitions(terms)
 
 
-def _parse_table(cursor: Cursor, depth) -> Table:
+def _parse_table(cursor: Cursor, section_depth) -> Table:
     _match_type_or_raise(cursor, TableStartToken)
     source = cursor.previous().source
 
     rows_group = _with_context(
-        lambda: _parse_grouping(cursor, depth), f"in content for table at {source}."
+        lambda: _parse_grouping(cursor, section_depth), f"in content for table at {source}."
     )
 
     # Break grouping down into rows of elements

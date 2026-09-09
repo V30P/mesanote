@@ -202,6 +202,3 @@ def test_definitions(input, expected):
 )
 def test_table(input, expected):
     assert_render(input, expected)
-
-
-# TODO: Add some end-to-end integration tests somewhere
