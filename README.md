@@ -14,45 +14,39 @@ This repository contains the following projects:
    - Low-dependency, pure Python implementation
    - Custom tokenizer, recursive descent parser, and AST
    - Easy-to-use CLI
-   - Comprehensive test suite
+   - Pytest test suite
 
 2. [VS Code extension](extension)
    - Automatic language detection
    - Syntax highlighting
    - Markdown-like preview
 
-## Examples
+## Example
 
-A basic mesa document might look like this:
+A document written in MesaNote might look something like this:
 
-```cpp
-> Project Launch {
-    // Assign launch responsibilities
-    > Tasks +  {
-        > Setup Repository | Alice  
+```
+// MesaNote sample
+> My Lab Report {
+    > Introduction 
+    ...
 
-        > Create Roadmap + {
-            Bob
-            Linda
-        }
+    > Data # {
+        { 0.1 | 0.1 }
+        { 0.2 | 0.3 }
+    }
+
+    > Findings + {
+        A
+        B
+        C
     }
 }
 ```
 
-Which is roughly equivalent to Markdown:
+Note the use of structural symbols (`>`, `#`, and `+`) and bracket groupings (`{}`) as these are the key mechanisms of the language. 
 
-```markdown
-# Project Launch
-## Tasks
-- ### Setup Repository
-    Alice
-
-- ### Create Roadmap
-    - Bob
-    - Linda
-```
-
-For more sample documents, see the [`examples/`](examples) directory. Rendered output can be found in corresponding `.html` files.
+For more examples, as well as syntax documentation, see the syntax guide [here](SYNTAX.md).
 
 ## Design
 
@@ -100,8 +94,6 @@ table = "#" , grouping ;
 
 Because this grammar is LL(1), it is a prime candidate for parsing using recursive descent, which is how MesaNote's parser is implemented.
 
-For a more practical look at MesaNote's sytnax, see the [syntax guide](SYNTAX.md).
-
 ## Getting Started
 
 MesaNote is packaged through the [Nix](https://github.com/nixos/nix) package manager. To install, run:
@@ -122,7 +114,7 @@ mesa COMMAND
 
 Additionally, the MesaNote VSCode extension is available at `github:V30P/mesanote#extension` and can be built via `nix build`.
 
-For a cleaner installation experience, MesaNote provides a module for Nix's [Home Manager](https://github.com/nix-community/home-manager) system. It is also possible to automatically install the VSCode extension by including it in your `Programs.VSCode` config in Home Manager.
+For a cleaner installation experience, MesaNote provides a module for Nix's [Home Manager](https://github.com/nix-community/home-manager) system. It is also possible to declaratively install the VSCode extension by including it in your `Programs.VSCode` config in Home Manager.
 
 ## License
 

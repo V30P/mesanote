@@ -90,7 +90,7 @@ Structures provide formatting outside of what is available with just plain text.
 In general, structures take the form:
 
 ```cpp
-<strucure symbol> [args]
+<structure symbol> [args]
 ```
 
 It is common practice to pass groupings to structures when the structure should contain multiple subelements.
@@ -154,9 +154,9 @@ Consecutive definitions will be rendered together as one definition list.
 
 ### Tables 
 
-A Table organizes content into a grid. Tables begin with `#` followed by a grouping where each element is one cell in the table. 
+A Table organizes elements into a grid. Tables begin with `#` followed by a grouping where each element is one cell in the table. 
 
-Tables can be one-dimensional.
+Tables can be one or two-dimensional.
 
 ```cpp
 # {
@@ -164,14 +164,19 @@ Tables can be one-dimensional.
     B
     C
 }
-```
 
-They can also be two-dimensional.
-
-```cpp
 # {
     { A1 | B1 | C1 }
     { A2 | B2 | C2 }
+}
+```
+
+And even have varying row lengths.
+
+```cpp
+# {
+    A1
+    { A2 | B2 }
 }
 ```
 
@@ -185,9 +190,4 @@ This is a normal string // This is a comment
 
 ## Further Reading
 
-After reviewing this guide, you should have a working understanding of MesaNote syntax. You can now create and parse Mesa Documents using either the CLI or VS Code extension.
-
-For more information, see:
-
-- The [`examples/`](examples) directory for sample documents
-- The README’s [Design](README.md#design) section for a more techincal look at MesaNote syntax
+After reviewing this guide, you should have a working understanding of MesaNote syntax. You can now create and parse Mesa Documents using either the CLI or VS Code extension. For a more techincal look at the project, see the README’s [Design](README.md#design) section.
