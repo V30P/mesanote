@@ -92,7 +92,7 @@ definitions = "@" , string , string , { "@" , string , string } ;
 table = "#" , grouping ;
 ```
 
-Because this grammar is LL(1), it is a prime candidate for parsing using recursive descent, which is how MesaNote's parser is implemented.
+Because this grammar is LL(1), it is a prime candidate for parsing using recursive descent, which is how MesaNote's parser works.
 
 ## Getting Started
 
