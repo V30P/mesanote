@@ -70,26 +70,33 @@ Comments begin with `//` and extend to the end of the line. A backslash (`\`) ca
 
 MesaNote’s grammar can be described in EBNF as:
 
-```ebnf
+```
+(* --- Lexical --- *)
+SPECIAL = "//" | "\" | "*" | "`" | "|" | "{" | "}" | ">" | "+" | "#" | "@" ;
+COMMENT = "//" , { ANY - "\n" } , "\n" | EOF ; 
+ESCAPE = "\" , SPECIAL ;
+TERMINATOR = "\n" | EOF | "|" ;  
+TEXT = ( ESCAPE | ANY - ( SPECIAL | TERMINATOR ) ) , { ESCAPE | ANY - ( SPECIAL | TERMINATOR )} ;
+
+(* --- Syntactic --- *)
 document = { element } ;
-element = string | grouping | structure | comment ;
+element = string | grouping | structure ;
 grouping = "{" , { element } , "}" ;
-comment = "//" , TEXT , "\n" ; 
 
 (* Strings *)
-string = substring , { substring } , "\n" ;
+string = substring , { substring } , [ TERMINATOR ] ;
 substring = TEXT | emphasis | code_block ;
 emphasis = weak_emphasis | strong_emphasis ;
-weak_emphasis = "*" , TEXT , "*" ;
-strong_emphasis = "**" , (TEXT | emphasis) , "**" ;
-code_block = "`" , { "`" } , TEXT , "`" , { "`" } ;
+weak_emphasis = "*" , [ TEXT ] , "*" ; 
+strong_emphasis = "**" , [ TEXT | emphasis ] , "**" ; (* strong_emphasis is prioritized over weak_emphasis *)
+code_block = "`" , { "`" } , { ANY } , "`" , { "`" } ; (* code_block ends when a fence equal in the length to the opening one is encountered *)
 
 (* Structures *)
 structure = section | list | definitions | table ;
 section = ">" , string , element ;
 list = "+" , grouping ;
-definitions = "@" , string , string , { "@" , string , string } ;
 table = "#" , grouping ;
+definitions = "@" , string , string , [ definitions ] ;
 ```
 
 Because this grammar is LL(1), it is a prime candidate for parsing using recursive descent, which is how MesaNote's parser works.

@@ -1,205 +1,242 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "MesaNote",
+	"scopeName": "text.mesanote",
 	"patterns": [
-		{ "include": "#comments" },
-		{ "include": "#code_block" },
-		{ "include": "#inline_code" },
-		{ "include": "#escape" },
-		{ "include": "#sections" },
-		{ "include": "#definitions" },
-		{ "include": "#tables" },
-		{ "include": "#lists" },
-		{ "include": "#groupings" },
-		{ "include": "#string_symbols" },
-		{ "include": "#symbols" }
+		{
+			"include": "#element"
+		}
 	],
 	"repository": {
-		"comments": {
+		"element": {
 			"patterns": [
-				{ "name": "comment.line.double-slash", "match": "//.*$" }
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#section"
+				},
+				{
+					"include": "#definition"
+				},
+				{
+					"include": "#list"
+				},
+				{
+					"include": "#table"
+				},
+				{
+					"include": "#grouping"
+				},
+				{
+					"include": "#string"
+				},
+				{
+					"include": "#symbols"
+				}
+			]
+		},
+		"comment": {
+			"name": "comment.line.double-slash",
+			"begin": "//",
+			"end": "\\n"
+		},
+		"grouping": {
+			"name": "meta.grouping.mesanote",
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": {
+				"0": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			},
+			"endCaptures": {
+				"0": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#element"
+				}
+			]
+		},
+		"section": {
+			"name": "meta.section.mesanote",
+			"begin": "(>)",
+			"end": "(\\|)|(?:(?<=[^\\s>])|(?<=\\\\>))[ \\t]*\\n|(?=[{}>+#@]|//)",
+			"contentName": "entity.name.section.title.mesanote",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.table.mesanote"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#inline"
+				}
+			]
+		},
+		"list": {
+			"name": "meta.list.mesanote",
+			"begin": "(\\+)",
+			"end": "(?<=\\})|(?=[^\\s{])",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.list.mesanote"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#grouping"
+				}
+			]
+		},
+		"table": {
+			"name": "meta.table.mesanote",
+			"begin": "(#)",
+			"end": "(?<=\\})|(?=[^\\s{])",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.table.mesanote"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#grouping"
+				}
+			]
+		},
+		"definition": {
+			"name": "meta.definition.mesanote",
+			"begin": "(@)",
+			"end": "(\\|)|(?:(?<=[^\\s@])|(?<=\\\\@))[ \\t]*\\n|(?=[{}>+#@]|//)",
+			"contentName": "entity.name.definition.term.mesanote",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.definition.mesanote"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#inline"
+				}
+			]
+		},
+		"string": {
+			"name": "meta.string.mesanote",
+			"begin": "(?=[^\\s{}>+@#|])(?!//)",
+			"end": "(\\|)|\\n|(?=[{}>+#@]|//)",
+			"endCaptures": {
+				"1": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#inline"
+				}
+			]
+		},
+		"symbols": {
+			"name": "keyword.operator.punctuation.mesanote",
+			"match": "[|}]"
+		},
+		"inline": {
+			"patterns": [
+				{
+					"include": "#escape"
+				},
+				{
+					"include": "#code"
+				},
+				{
+					"include": "#strong"
+				},
+				{
+					"include": "#weak"
+				}
 			]
 		},
 		"escape": {
 			"patterns": [
-				{ "name": "constant.character.escape.mesanote", "match": "\\\\." }
+				{
+					"name": "constant.character.escape.mesanote",
+					"match": "\\\\(?://|[\\\\*`|{}>+#@])"
+				},
+				{
+					"name": "invalid.illegal.escape.mesanote",
+					"match": "\\\\."
+				}
 			]
 		},
-		"code_block": {
-			"begin": "^\\s*(`+)\\s*$",
-			"beginCaptures": {
-				"1": { "name": "keyword.operator.punctuation.mesanote" }
-			},
-			"end": "^\\s*\\1\\s*$",
-			"endCaptures": {
-				"0": { "name": "keyword.operator.punctuation.mesanote" }
-			},
+		"code": {
 			"name": "string.quoted.other.backtick.mesanote",
-			"contentName": "string.quoted.other.backtick.mesanote",
-			"patterns": []
+			"begin": "(`+)",
+			"end": "(?<!`)(\\1)(?!`)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "keyword.operator.punctuation.mesanote"
+				}
+			}
 		},
-		"inline_code": {
+		"strong": {
+			"name": "markup.bold.mesanote",
+			"begin": "(\\*\\*)",
+			"end": "(\\*\\*)|(?=\\||\\n|[{}>+#@`]|//)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.mesanote"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "keyword.operator.mesanote"
+				}
+			},
 			"patterns": [
 				{
-					"name": "string.quoted.other.backtick.mesanote",
-					"begin": "(`)",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.punctuation.mesanote" }
-					},
-					"end": "(`)",
-					"endCaptures": {
-						"1": { "name": "keyword.operator.punctuation.mesanote" }
-					},
-					"contentName": "string.quoted.other.backtick.mesanote",
-					"patterns": []
+					"include": "#escape"
+				},
+				{
+					"include": "#weak"
 				}
 			]
 		},
-		"string_symbols": {
-			"patterns": [
-				{
-					"begin": "([*]{2})",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.mesanote" }
-					},
-					"end": "([*]{2})",
-					"endCaptures": {
-						"1": { "name": "keyword.operator.mesanote" }
-					},
-					"name": "markup.bold.mesanote",
-					"patterns": []
-				},
-				{
-					"begin": "([*])",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.mesanote" }
-					},
-					"end": "([*])",
-					"endCaptures": {
-						"1": { "name": "keyword.operator.mesanote" }
-					},
-					"name": "markup.italic.mesanote",
-					"patterns": []
-				},
-				{ "include": "#escape" }
-			]
-		},
-		"groupings": {
-			"begin": "\\{",
-			"beginCaptures": { "0": { "name": "keyword.operator.punctuation.mesanote" } },
-			"end": "\\}",
-			"endCaptures": { "0": { "name": "keyword.operator.punctuation.mesanote" } },
-			"name": "meta.grouping.mesanote",
-			"patterns": [
-				{ "include": "#comments" },
-				{ "include": "#sections" },
-				{ "include": "#tables" },
-				{ "include": "#lists" },
-				{ "include": "#definitions" },
-				{ "include": "#code_block" },
-				{ "include": "#inline_code" },
-				{ "include": "#escape" },
-				{ "include": "#string_symbols" },
-				{ "include": "#groupings" },
-				{ "include": "#symbols" }
-			]
-		},
-		"sections": {
-			"patterns": [
-				{
-					"name": "meta.section.block.mesanote",
-					"begin": "^\\s*(>+)\\s*$",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.table.mesanote" }
-					},
-					"end": "^\\s*([^\\{|\\n]+?)(?=\\s*[\\{|]|$)",
-					"endCaptures": {
-						"1": { "name": "entity.name.section.title.mesanote" }
-					},
-					"patterns": [
-						{ "include": "#escape" },
-						{ "include": "#inline_code" },
-						{ "include": "#string_symbols" },
-						{ "include": "#symbols" }
-					]
-				},
-				{
-					"name": "meta.section.mesanote",
-					"match": "^\\s*(>+)(?:\\s*)([^\\{|\\n]+?)(?=\\s*[\\{|]|$)",
-					"captures": {
-						"1": { "name": "keyword.operator.table.mesanote" },
-						"2": { "name": "entity.name.section.title.mesanote" }
-					}
+		"weak": {
+			"name": "markup.italic.mesanote",
+			"begin": "(\\*)(?!\\*)",
+			"end": "(\\*)|(?=\\||\\n|[{}>+#@`]|//)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.mesanote"
 				}
-			]
-		},
-		"lists": {
-			"patterns": [
-				{ "match": "^\\s*(\\+)", "captures": { "1": { "name": "keyword.operator.list.mesanote" } } }
-			]
-		},
-		"definitions": {
-			"patterns": [
-				{
-					"name": "meta.definition.block.mesanote",
-					"begin": "^\\s*(@)\\s*$",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.definition.mesanote" }
-					},
-					"end": "^\\s*([^|\\n]+?)(?=\\s*\\||$)",
-					"endCaptures": {
-						"1": { "name": "entity.name.definition.term.mesanote" }
-					},
-					"patterns": [
-						{ "include": "#escape" },
-						{ "include": "#inline_code" },
-						{ "include": "#string_symbols" },
-						{ "include": "#symbols" }
-					]
-				},
-				{
-					"name": "meta.definition.term.mesanote",
-					"begin": "^\\s*(@)\\s*",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.definition.mesanote" }
-					},
-					"end": "(?=\\s*\\|)|$",
-					"contentName": "entity.name.definition.term.mesanote",
-					"patterns": [
-						{ "include": "#escape" },
-						{ "include": "#inline_code" },
-						{ "include": "#string_symbols" },
-						{ "include": "#symbols" }
-					]
-				},
-				{
-					"name": "meta.definition.content.mesanote",
-					"begin": "(\\|)\\s*",
-					"beginCaptures": {
-						"1": { "name": "keyword.operator.punctuation.mesanote" }
-					},
-					"end": "$",
-					"contentName": "meta.definition.content.mesanote",
-					"patterns": [
-						{ "include": "#escape" },
-						{ "include": "#inline_code" },
-						{ "include": "#string_symbols" },
-						{ "include": "#symbols" }
-					]
+			},
+			"endCaptures": {
+				"1": {
+					"name": "keyword.operator.mesanote"
 				}
-			]
-		},
-		"tables": {
+			},
 			"patterns": [
-				{ "match": "^\\s*(#+)", "captures": { "1": { "name": "keyword.operator.table.mesanote" } } }
-			]
-		},
-		"symbols": {
-			"patterns": [
-				{ "name": "keyword.operator.punctuation.mesanote", "match": "[\\{\\}\\|>\\+]" },
-				{ "name": "keyword.control.mesanote", "match": "[|>+]" }
+				{
+					"include": "#escape"
+				}
 			]
 		}
-	},
-	"scopeName": "text.mesanote"
+	}
 }
