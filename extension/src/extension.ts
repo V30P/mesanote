@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 async function parse(): Promise<void> {
-    // Ensure there is an open text editor and its language is mesanote
+    // Don't parse if there is no open editor or its language is not mesanote
     const editor = vscode.window.activeTextEditor;
     if (!editor || editor.document.languageId !== "mesanote") {
         statusBarMessage?.dispose();
@@ -71,36 +71,37 @@ function getMesaErrorText(error: Error): string {
 }
 
 async function openPreview(context: vscode.ExtensionContext): Promise<void> {
-    if (preview == null) {
-        preview = vscode.window.createWebviewPanel(
-            "mesanote",
-            "Preview",
-            vscode.ViewColumn.Active,
-            {
-                retainContextWhenHidden: true
-            }
-        );
-
-        // Set up the handler for the preview being closed
-        preview.onDidDispose(
-            () => {
-                preview = null;
-                statusBarMessage?.dispose();
-                statusBarMessage = null;
-            },
-            null,
-            context.subscriptions
-        );
-
-        // Make sure parse has run at least once before previewing
-        if (parse_result == null) {
-            await parse(); 
-        }
-
-        updatePreview();
-    } else {
+    if (preview != null) {
         preview.reveal();
+        return;
     }
+
+    preview = vscode.window.createWebviewPanel(
+        "mesanote",
+        "Preview",
+        vscode.ViewColumn.Active,
+        {
+            retainContextWhenHidden: true
+        }
+    );
+
+    // Set up the handler for the preview being closed
+    preview.onDidDispose(
+        () => {
+            preview = null;
+            statusBarMessage?.dispose();
+            statusBarMessage = null;
+        },
+        null,
+        context.subscriptions
+    );
+
+    // Make sure parse has run at least once before previewing
+    if (parse_result == null) {
+        await parse();
+    }
+
+    updatePreview();
 }
 
 function updatePreview(): void {

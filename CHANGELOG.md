@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- More responsive, latest-wins asynchronous parsing to the extension
+- Status bar message for extension parse errors 
+
+### Changed
+- Updated README EBNF grammar to more accurately reflect implementation
+
 ## [0.2.0] - 2026-09-11
 
 ### Added
@@ -11,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Improved extension syntax highlighting
 - CLI, extension, and Home Manager module derivations in `flake.nix`
 
-## Changed
+### Changed
 - `TokenizationError` and `ParseError` to include source location and context
 - README to use Nix for installation instructions (replaces setup.sh)
 
@@ -19,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Extension failing when trying to re-open the preview after closing it
 - Errors in README EBNF grammar
 
-## Removed
+### Removed
 - `setup.sh` script
 - `examples/` directory
 
